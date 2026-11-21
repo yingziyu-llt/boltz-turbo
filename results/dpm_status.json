@@ -1,0 +1,49 @@
+{
+  "status": "completed",
+  "jobs": [31851302, 31851434],
+  "job_exit_codes": ["0:0", "0:0"],
+  "gpu": "NVIDIA L40",
+  "execution": "stock eager; no added operator acceleration",
+  "input": "data/smoke.yaml",
+  "seeds": [0, 1],
+  "policy": "Fixed frame, no churn, reverse alignment or guidance; unit step scale; unchanged sigma endpoints",
+  "reference": "Same-condition Heun512 (1023 NFE), with Heun256 reference sensitivity",
+  "variants": ["standard midpoint", "Taylor coefficients", "global history weight 0.5", "first-order below sigma=1 Angstrom", "log-grid power 0.75", "ligand-only history weight 0.5"],
+  "budgets": [16, 32],
+  "structure_16_nfe": {
+    "seed0": {
+      "standard": {"coordinate_rms_A": 0.5918992, "ligand_coordinate_rms_A": 0.3134317, "ligand_distance_rms_A": 0.0380179},
+      "tail_first_order": {"coordinate_rms_A": 0.5752581, "ligand_coordinate_rms_A": 0.2609849, "ligand_distance_rms_A": 0.0264057}
+    },
+    "seed1": {
+      "standard": {"coordinate_rms_A": 0.2869679, "ligand_coordinate_rms_A": 0.2897111, "ligand_distance_rms_A": 0.0348721},
+      "tail_first_order": {"coordinate_rms_A": 0.2512411, "ligand_coordinate_rms_A": 0.2584889, "ligand_distance_rms_A": 0.0280411}
+    }
+  },
+  "affinity_ligand_history_32_nfe_same_condition_seed1": {
+    "standard": {"coordinate_rms_A": 0.1418739, "ligand_coordinate_rms_A": 0.7175906, "ligand_distance_rms_A": 0.1713700},
+    "ligand_damped": {"coordinate_rms_A": 0.1538622, "ligand_coordinate_rms_A": 0.9171134, "ligand_distance_rms_A": 0.1223122}
+  },
+  "full_pipeline_probability": {
+    "seed0_standard": 0.3922536,
+    "seed0_ligand_damped": 0.4165251,
+    "seed1_standard": 0.3213759,
+    "seed1_ligand_damped": 0.3144613
+  },
+  "combined_warm_sample_seconds_32_nfe": {
+    "seed0_standard": 2.4163429,
+    "seed0_ligand_damped": 2.4271570,
+    "seed1_standard": 2.4176933,
+    "seed1_ligand_damped": 2.4450290
+  },
+  "decision": "Keep standard midpoint as default; first-order low-noise tail is a promising 16-NFE structure-stage candidate. Ligand-only damping is a tradeoff, not an accepted improvement.",
+  "limitations": [
+    "One unlabeled complex, two seeds; no physical validity or enrichment conclusion.",
+    "Coordinate RMS is per coordinate, not per-atom Euclidean RMSD.",
+    "Each study holds conditioning and initial RNG fixed; affinity conditions differ across full structure variants and those studies must not be pooled as identical-condition replicates.",
+    "Heun256/512 disagreement reaches 0.0371 A coordinate RMS in one affinity condition; numerical reference is approximate.",
+    "Timing covers sampling only; study CLI includes reference trajectories and diagnostic overhead.",
+    "History damping is a heuristic that generally sacrifices second-order accuracy; finite-sigma tail lowering is an experimental hybrid, not a guaranteed higher-order method."
+  ],
+  "remote_full_results": "/lustre3/lhlai_pkuhpc/llt/boltz2_acclerate/results/training_free/dpm_comparison.json"
+}

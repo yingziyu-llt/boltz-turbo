@@ -1,0 +1,45 @@
+{
+  "status": "completed",
+  "job_id": 31814416,
+  "exit_code": "0:0",
+  "gpu": "NVIDIA L40",
+  "torch": "2.13.0+cu130",
+  "input": "data/smoke.yaml",
+  "budgets_unchanged": true,
+  "structure": {
+    "coordinate_shape": [1, 2976, 3],
+    "eager_warm_sample_seconds": 6.159988137893379,
+    "graph_warm_sample_seconds": 4.3511687479913235,
+    "warm_sample_speedup": 1.4157088577033654,
+    "median_denoiser_speedup": 1.2997401201103496,
+    "capture_seconds": 0.12596204690635204,
+    "fixed_input_max_abs_error": 0.0,
+    "changed_input_max_abs_error": 0.0,
+    "eager_peak_allocated_gib": 3.2081079483032227,
+    "graph_peak_allocated_gib": 3.2240452766418457
+  },
+  "affinity": {
+    "coordinate_shape": [5, 1536, 3],
+    "eager_warm_sample_seconds": 9.584298907779157,
+    "graph_warm_sample_seconds": 9.386491714976728,
+    "warm_sample_speedup": 1.0210736022370122,
+    "median_denoiser_speedup": 1.0134827472172931,
+    "capture_seconds": 0.07771413587033749,
+    "fixed_input_max_abs_error": 0.0,
+    "changed_input_max_abs_error": 0.0,
+    "eager_peak_allocated_gib": 2.6341052055358887,
+    "graph_peak_allocated_gib": 2.654310703277588
+  },
+  "final_structure_coordinate_max_abs_error_angstrom": 0.0,
+  "final_structure_coordinate_rms_error_angstrom": 0.0,
+  "final_affinity_all_six_scores_max_abs_error": 0.0,
+  "measurement_scope": "Five groups of twenty fixed-input denoiser calls per mode; one warm full-budget sample repeat per stage with RNG restored. No torch.profiler. Model and conditioning resident; not whole-pipeline multi-ligand throughput.",
+  "limitations": [
+    "One protein-ligand input and one paired job; no general accuracy or throughput claim.",
+    "Graph conditions and tensor shapes are fixed within a sample; no cross-ligand graph reuse implemented.",
+    "Experiment CLI includes microbenchmarks and repeated sampling; CLI wall time is not deployment latency.",
+    "Final structure comparison uses serialized CIF coordinates, not full-precision internal coordinates."
+  ],
+  "decision": "Prioritize structure-stage graph replay; affinity-stage benefit is small in this input. Next measure independent end-to-end runs without embedded benchmarks and with per-sample graph lifecycle.",
+  "remote_results": "/lustre3/lhlai_pkuhpc/llt/boltz2_acclerate/results/resident"
+}

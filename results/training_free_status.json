@@ -1,0 +1,35 @@
+{
+  "status": "completed",
+  "gpu": "NVIDIA L40",
+  "torch": "2.13.0+cu130",
+  "boltz": "2.2.1",
+  "jobs": [31848018, 31848535],
+  "completed_configurations": 12,
+  "input": "data/smoke.yaml; one unlabeled protein-ligand complex; seed 0",
+  "execution": "stock eager; no approximate kernels; structure recycling 3/samples 1, affinity recycling 5/samples 5 unchanged",
+  "results": [
+    {"configuration": "stock_karras_200", "structure_sample_seconds": 6.063686, "affinity_sample_seconds": 9.311859, "probability": 0.3151170, "protein_ca_rmsd": 0.0, "ligand_protein_aligned_rmsd": 0.0},
+    {"configuration": "stock_karras_100", "structure_sample_seconds": 3.103271, "affinity_sample_seconds": 4.643603, "probability": 0.3351129, "protein_ca_rmsd": 1.078519, "ligand_protein_aligned_rmsd": 2.701350},
+    {"configuration": "stock_karras_50", "structure_sample_seconds": 1.511958, "affinity_sample_seconds": 2.359342, "probability": 0.4259173, "protein_ca_rmsd": 3.406729, "ligand_protein_aligned_rmsd": 2.024592},
+    {"configuration": "geometric_50", "structure_sample_seconds": 1.521216, "affinity_sample_seconds": 2.276459, "probability": 0.3411967, "protein_ca_rmsd": 3.165254, "ligand_protein_aligned_rmsd": 1.457769},
+    {"configuration": "euler_karras_200", "structure_sample_seconds": 5.624899, "affinity_sample_seconds": 9.364724, "probability": 0.3956078, "protein_ca_rmsd": 8.240739, "ligand_protein_aligned_rmsd": 2.384988},
+    {"configuration": "euler_karras_64", "structure_sample_seconds": 1.789815, "affinity_sample_seconds": 2.979919, "probability": 0.3957811, "protein_ca_rmsd": 8.180660, "ligand_protein_aligned_rmsd": 2.374365},
+    {"configuration": "euler_geometric_64", "structure_sample_seconds": 1.830729, "affinity_sample_seconds": 2.993130, "probability": 0.4004663, "protein_ca_rmsd": 8.128044, "ligand_protein_aligned_rmsd": 2.369710},
+    {"configuration": "euler_geometric_32", "structure_sample_seconds": 0.909391, "affinity_sample_seconds": 1.502529, "probability": 0.4094465, "protein_ca_rmsd": 7.899770, "ligand_protein_aligned_rmsd": 2.386363},
+    {"configuration": "heun_geometric_32", "structure_sample_seconds": 1.863185, "affinity_sample_seconds": 2.957978, "probability": 0.3889437, "protein_ca_rmsd": 8.355822, "ligand_protein_aligned_rmsd": 2.401294},
+    {"configuration": "heun_geometric_16", "structure_sample_seconds": 0.903945, "affinity_sample_seconds": 1.444583, "probability": 0.4114186, "protein_ca_rmsd": 8.631612, "ligand_protein_aligned_rmsd": 2.352728},
+    {"configuration": "dpm2m_geometric_64", "structure_sample_seconds": 1.814757, "affinity_sample_seconds": 2.975800, "probability": 0.4170954, "protein_ca_rmsd": 8.273819, "ligand_protein_aligned_rmsd": 2.382342},
+    {"configuration": "dpm2m_geometric_32", "structure_sample_seconds": 0.902609, "affinity_sample_seconds": 1.487178, "probability": 0.3923746, "protein_ca_rmsd": 8.323839, "ligand_protein_aligned_rmsd": 2.392436}
+  ],
+  "geometry_reference": "stock 200-step CIF; C-alpha alignment; ligand atoms matched by name without symmetry correction",
+  "ode_policy": "Fixed frame, no churn/reverse alignment/steering, unit step scale; compared against original stochastic sampler with physical guidance",
+  "decision": "Continue validating stochastic geometric 50-step sampling; deterministic ODE branch shows substantial structure drift even at 200 steps and is not accepted as a quality-preserving replacement.",
+  "limitations": [
+    "One input and one seed; no activity labels or enrichment measurement.",
+    "Timings cover warm sampling only, not end-to-end inference; CLI and trainer measurements include an extra sampling repeat.",
+    "Both stages changed together; no independent stage attribution.",
+    "No PoseBusters validity measurement; structure differences are not experimental accuracy.",
+    "Several ODE policy changes combined; their individual contributions are not isolated."
+  ],
+  "remote_results": "/lustre3/lhlai_pkuhpc/llt/boltz2_acclerate/results/training_free/comparison.json"
+}

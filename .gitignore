@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environments & external kits
+.venv/
+venv/
+anthropic-env/
+anthropic-kit/
+
+# Caches & temporary directories
+cache/
+tmp/
+.triton/
+
+# Generated datasets
+data/batch/
+data/stability/
+
+# Heavy experiment outputs & logs (keep curated results/*_status.json)
+results/*/
+results/*.log
+slurm-*.out
+*.err
+
+# Model checkpoints
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+
+# Editors & OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~

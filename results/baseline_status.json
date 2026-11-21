@@ -1,0 +1,52 @@
+{
+  "stage": "P1",
+  "status": "completed",
+  "gpu": "NVIDIA L40",
+  "boltz": "2.2.1",
+  "torch": "2.13.0+cu130",
+  "batch_job_id": 31814392,
+  "profile_job_id": 31814400,
+  "profile_exit_code": "0:0",
+  "input": "384-residue protein, 249 MSA records, six aromatic amino-acid ligands without activity labels",
+  "structure_budget": {"recycling_steps": 3, "sampling_steps": 200, "diffusion_samples": 1},
+  "affinity_budget": {"recycling_steps": 5, "sampling_steps": 200, "diffusion_samples": 5},
+  "batch_runs": [
+    {"molecules": 6, "wall_seconds": 216.88421011297032, "seconds_per_molecule": 36.14736835216172},
+    {"molecules": 6, "wall_seconds": 200.23238780163229, "seconds_per_molecule": 33.37206463360538}
+  ],
+  "batch_outputs_validated": 12,
+  "profile": {
+    "preprocessing_seconds": 0.47806753823533654,
+    "checkpoint_load_seconds": [24.049059689976275, 23.774544414132833],
+    "instrumented_cli_seconds": 85.73482674360275,
+    "structure": {
+      "trainer_wall_seconds": 21.024451258592308,
+      "peak_allocated_gib": 3.2081079483032227,
+      "peak_reserved_gib": 3.95703125,
+      "msa_gpu_timeline_seconds": 0.4952340469360351,
+      "template_gpu_timeline_seconds": 2.75678920841217,
+      "pairformer_gpu_timeline_seconds": 3.4440489501953127,
+      "diffusion_gpu_timeline_seconds": 9.5503671875,
+      "confidence_gpu_timeline_seconds": 0.28059317016601565
+    },
+    "affinity": {
+      "trainer_wall_seconds": 16.143485761247575,
+      "peak_allocated_gib": 2.6341052055358887,
+      "peak_reserved_gib": 2.919921875,
+      "msa_gpu_timeline_seconds": 0.183062463760376,
+      "pairformer_gpu_timeline_seconds": 1.966893829345703,
+      "diffusion_gpu_timeline_seconds": 10.7246015625,
+      "confidence_gpu_timeline_seconds": 0.47061974334716794,
+      "affinity_heads_gpu_timeline_seconds": 0.11930496215820314
+    }
+  },
+  "limitations": [
+    "Two independent CLI runs; disk/JIT caches reused, no resident model steady-state measurement.",
+    "Instrumented module GPU timelines include host gaps and one profiled denoiser; nested totals are not additive.",
+    "Memory figures are PyTorch allocator peaks in the instrumented single-ligand run, not total device memory.",
+    "Some ligand scores differ between batch repetitions despite seed 0; cause not isolated.",
+    "No screening quality conclusion from unlabeled performance inputs."
+  ],
+  "remote_results": "/lustre3/lhlai_pkuhpc/llt/boltz2_acclerate/results",
+  "next_priority": "Measure uninstrumented resident-model denoising before comparing compilation/CUDA graphs; preserve full budgets for exact-path optimization."
+}

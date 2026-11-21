@@ -1,0 +1,33 @@
+{
+  "status": "completed_l40_partial_adaptation",
+  "kit_commit": "f4f62fa6592ae4938d49b1757bea0cfeff9f468e",
+  "kit_version": "0.3.36",
+  "opt_core_version": "0.5.228.0",
+  "job_id": 31815274,
+  "environment": {"torch": "2.12.0+cu130", "triton": "3.7.0", "cuequivariance": "0.10.0", "gpu": "NVIDIA L40", "cc": "8.9", "python": "3.11.16"},
+  "environment_path": "/lustre3/lhlai_pkuhpc/llt/boltz2_acclerate/anthropic-env",
+  "input": "data/smoke.yaml",
+  "budgets_unchanged": true,
+  "runs": [
+    {"mode": "off", "wall_seconds": [99.97, 86.09], "exit_code": 0},
+    {"mode": "adapt_exact", "wall_seconds": [175.59, 86.25], "exit_code": 0, "structure_phase_seconds_second_run": 8.124, "peak_structure_allocated_gib": 3.88, "cif_byte_identical": true, "affinity_all_scores_max_abs_error": 0.0},
+    {"mode": "adapt_fast", "wall_seconds": [61.8, 58.76], "exit_code": 0, "structure_phase_seconds_second_run": 3.154, "peak_structure_allocated_gib": 4.23, "aligned_all_atom_rmsd_angstrom": 0.5999558725206653, "affinity_pred_value_abs_error": 0.1910851001739502, "affinity_probability_binary_abs_error": 0.03274548053741455},
+    {"mode": "adapt_big", "wall_seconds": [61.06, 60.05], "exit_code": 0, "structure_phase_seconds_second_run": 4.347, "peak_structure_allocated_gib": 3.33, "aligned_all_atom_rmsd_angstrom": 0.5948675598132218, "affinity_pred_value_abs_error": 0.1910851001739502, "affinity_probability_binary_abs_error": 0.03274548053741455},
+    {"mode": "adapt_big_x2", "wall_seconds": [80.54, 76.58], "exit_code": 0, "structure_phase_seconds_second_run": 18.687, "aligned_all_atom_rmsd_angstrom": 0.848588814237936, "affinity_pred_value_abs_error": 0.09977507591247559, "affinity_probability_binary_abs_error": 0.011216998100280762}
+  ],
+  "executed": ["residual_and_trivial_mask_elision", "dummy_template_skip", "diffusion_rollout_cuda_graph", "dit_invariant_hoist", "dit_parallel_mask_scale_bias", "msa_chunk_cast_mask_count_division_hoists", "constructor_initialization_skip", "atom_window_gather_and_invariant_hoist", "background_writer", "persistent_featurizer", "bf16_pair_residency_and_pair_kernels", "fused_msa_pair_weighted_average", "fused_msa_transition", "fused_bf16_dit", "fused_bf16_atom_encoder_decoder", "conditioning_projection_fold", "chunked_conditioning", "early_free_and_lazy_relative_position", "expandable_segments", "two_gpu_rowpair_sharding"],
+  "not_executed_or_not_available": {
+    "exact_layer_norm_and_residual_fusion": "sm89 not proven",
+    "exact_dit_softmax_and_glue": "sm89 not proven",
+    "exact_msa_pwa_and_transition": "sm89 outside pin",
+    "fused_opm": "default and v2 attempted, both OutOfResources; explicitly off in final L40 configuration",
+    "standalone_pairblock_and_transition": "no_cell:128x4x32; declared safe stock path with allow-partial",
+    "trunk_graph": "397 tokens exceeds original 300-token ceiling; no captures",
+    "template_c64_fused_cells": "dummy template skipped; no live template workload",
+    "dit_tf32": "disabled in L40 adaptation due unvouched transition cell",
+    "jacobi64_kernel_execution": "lever requested on fast; observed rollout kabsch=device, so no claim that Jacobi kernel executed",
+    "four_or_eight_gpu_sharding": "not measured"
+  },
+  "limitations": ["Single unlabeled protein-ligand input; no enrichment or seed-to-seed quality validation.", "Stock baseline and adapted runs were separate jobs, not interleaved timing; single-process startup is noisy.", "Original exact/fast/big on L40 returned 3; final results are explicitly adapted partial modes, not full original modes.", "Kit affinity leg runs separately; structure-phase optimization timings do not represent affinity acceleration.", "Background writer and prefetch executed for one input; overlap throughput gain not established.", "No A800 run: driver 575 cannot run locked CUDA 13 stack."],
+  "remote_comparison": "/lustre3/lhlai_pkuhpc/llt/boltz2_acclerate/results/anthropic/comparison.json"
+}

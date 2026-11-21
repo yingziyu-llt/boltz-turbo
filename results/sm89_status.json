@@ -1,0 +1,24 @@
+{
+  "gpu": "NVIDIA L40 sm89",
+  "cache_root": "/lustre3/lhlai_pkuhpc/llt/boltz2_acclerate/cache",
+  "opm_smoke_job": 31824153,
+  "opm_config": {"BI": 4, "BJ": 4, "BK": 32, "BZ": 16, "num_warps": 4, "num_stages": 2, "AT": true},
+  "opm_shared_bytes": 69632,
+  "opm_spills": "14 unchunked; 16 chunked",
+  "opm_benchmark": [
+    {"tokens": 199, "msa_depth": 128, "stock_ms": 1.341266675790151, "fused_ms": 0.61174685330618, "relative_rms": 0.00006708620639983565},
+    {"tokens": 397, "msa_depth": 128, "stock_ms": 5.320375496486448, "fused_ms": 2.3278937017595447, "relative_rms": 0.0037575734313577414},
+    {"tokens": 397, "msa_depth": 1024, "stock_ms": 9.814757478648218, "fused_ms": 5.53053695678711, "relative_rms": 0.0032743941992521286}
+  ],
+  "comparison_job": 31824161,
+  "full_inference_seconds": {"baseline_fast": [116.12, 75.74], "sm89_opm_fast": [76.42, 72.35]},
+  "all_full_runs_exit_code": 0,
+  "sm89_opm_vs_stock": {"aligned_all_atom_rmsd_angstrom": 1.1070042445403412, "affinity_pred_value_abs_error": 0.1051173210144043, "affinity_probability_binary_abs_error": 0.06375056505203247},
+  "quality_validated": false,
+  "full_combination_job": 31824258,
+  "full_combination": {"exact_seconds": 82.17, "fast_seconds": 75.38, "exact_structure_phase_seconds": 10.592, "fast_structure_phase_seconds": 4.770, "fast_allocated_peak_gib": 4.24, "exact_cif_byte_identical": true, "exact_affinity_max_abs_error": 0.0, "exact_ln_calls": 1209, "exact_softmax_calls": 48, "exact_glue_calls": 240, "exact_msa_transition_calls": 15},
+  "pair_smoke": {"attention_cases": 8, "all_cases_equal": true, "attention_speedup_range": [1.25377, 1.57239], "transition_cases": 3, "transition_speedup": [2.39217, 2.39942, 2.99153]},
+  "exact_pwa_final": {"job": 31825397, "cli_seconds": 76.36, "structure_phase_seconds": 7.413, "served": 15, "compared": 1, "candidate": [2, 13], "real_msa_depth": 249, "cif_byte_identical": true, "affinity_max_abs_error": 0.0, "exit_code": 0},
+  "precision_not_enabled": ["dit_tf32"],
+  "limitations": ["One input; timings include process startup and separate affinity interpreter.", "OPM is a bf16 approximate path, not an exact replacement.", "Single-input speed difference does not establish screening quality or sustained throughput."]
+}

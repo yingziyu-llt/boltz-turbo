@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "region_definition": "Stock seed0 CIF pLDDT >=90; Kabsch fit on 327 protein CA; fixed masks for all candidates",
+  "coordinate_mapping_max_abs_difference_A": 0.000005722046,
+  "reference": "Same-condition structure-stage Heun512",
+  "metrics": "Per-atom Euclidean RMSD after high-confidence CA alignment, Angstrom",
+  "standard_2m": [
+    {"seed": 0, "nfe": 16, "high_confidence_all_atom": 0.109126, "high_confidence_ca": 0.053436, "pocket": 0.034450, "ligand": 0.135484, "low_confidence_lt70": 3.900065},
+    {"seed": 0, "nfe": 32, "high_confidence_all_atom": 0.091001, "high_confidence_ca": 0.048704, "pocket": 0.009527, "ligand": 0.062438, "low_confidence_lt70": 1.104863},
+    {"seed": 1, "nfe": 16, "high_confidence_all_atom": 0.158148, "high_confidence_ca": 0.035739, "pocket": 0.035360, "ligand": 0.201056, "low_confidence_lt70": 0.880917},
+    {"seed": 1, "nfe": 32, "high_confidence_all_atom": 0.109801, "high_confidence_ca": 0.015466, "pocket": 0.010585, "ligand": 0.049979, "low_confidence_lt70": 0.405612}
+  ],
+  "standard_32_vs_stock_seed0": [
+    {"seed": 0, "high_confidence_all_atom": 0.887380, "high_confidence_ca": 0.545295, "pocket": 0.599233, "ligand": 3.395394, "low_confidence_lt70": 37.179427},
+    {"seed": 1, "high_confidence_all_atom": 0.966691, "high_confidence_ca": 0.710961, "pocket": 0.730403, "ligand": 2.991063, "low_confidence_lt70": 10.969481}
+  ],
+  "decision": "Standard midpoint 16/32 NFE preserves high-confidence structure relative to the same ODE numerical reference on this input. Low-noise first-order tail does not improve high-confidence/core or pocket metrics and should not be preferred based on global RMS alone.",
+  "limitations": ["Structure stage only; no affinity cropped-coordinate mapping performed.", "Confidence labels from stock, not experimental truth or Heun512 confidence.", "One complex, two seeds; no screening-quality conclusion.", "Stock comparison includes sampling-policy differences; seed1 versus stock additionally includes seed differences."],
+  "remote_results": "/lustre3/lhlai_pkuhpc/llt/boltz2_acclerate/results/training_free/dpm_confidence.json"
+}
