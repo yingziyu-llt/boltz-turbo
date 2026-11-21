@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=boltz2-resident-cmp
 #SBATCH --partition=gpu_l40
-#SBATCH --nodelist=s60b05n02
 #SBATCH --account=lhlai_g1
 #SBATCH --qos=lhlail40
 #SBATCH --nodes=1
@@ -18,7 +17,8 @@ export BOLTZ_CACHE="${BOLTZ_CACHE:-/home/lhlai_pkuhpc/.boltz}"
 export XDG_CACHE_HOME="$PWD/cache" TRITON_CACHE_DIR="$PWD/cache/triton"
 export TORCHINDUCTOR_CACHE_DIR="$PWD/cache/torchinductor" CUDA_CACHE_PATH="$PWD/cache/cuda" TMPDIR="$PWD/tmp"
 mkdir -p "$TRITON_CACHE_DIR" "$TORCHINDUCTOR_CACHE_DIR" "$CUDA_CACHE_PATH" "$TMPDIR"
-nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv
+printf 'JOB_ID=%s NODE=%s\n' "$SLURM_JOB_ID" "$HOSTNAME"
+nvidia-smi --query-gpu=name,memory.total,driver_version,ecc.errors.uncorrected.volatile.total --format=csv
 
 SUITE="${1:-fair}"
 OUT_DIR="results/resident_compare_${SUITE}"
