@@ -14,16 +14,18 @@
 ├── experiments/                    # 独立实验入口脚本
 │   ├── exp_baseline.py             # 同靶点多配体基线吞吐与分阶段 profile
 │   ├── exp_cuda_graph.py           # 常驻 denoiser 与 CUDA Graph 验证
+│   ├── exp_resident_compare.py     # 持久化模型加载 + 交错稳态多方法公平对比
 │   ├── exp_anthropic_l40.py        # Anthropic boltz2_opt 套件 L40 裁剪适配
 │   ├── exp_sm89.py                 # L40 (sm_89) 自定义算子组合推理入口
 │   └── exp_training_free.py        # Training-free 采样器、DPM-Solver++ 2M 与稳定性实验
 ├── analysis/                       # 离线指标汇总与结构漂移分析
 │   ├── analyze_anthropic.py        # Anthropic 套件各模式耗时与误差汇总
 │   ├── analyze_structure_drift.py  # 高置信度核心对齐与结构漂移分析
-│   ├── analyze_training_free.py    # Training-free 12 组采样器对比
+│   ├── analyze_training_free.py    # Training-free 12 组采样对比
 │   ├── analyze_dpm.py              # DPM-Solver++ 2M 变体消融汇总
 │   ├── analyze_dpm_confidence.py   # DPM 按 pLDDT 置信度分区 RMSD 分析
-│   └── analyze_stability.py        # 多体系/多种子稳定性与对称校正配体 RMSD 分析
+│   ├── analyze_stability.py        # 多体系/多种子稳定性与对称校正配体 RMSD 分析
+│   └── analyze_resident_compare.py # 持久化稳态公平对比汇总与 Markdown 制表
 ├── sm89/                           # NVIDIA L40 (Ada sm_89) 算子适配补丁与微基准
 │   ├── install_sm89.py             # 写入 zz_boltz_sm89.pth 启动钩子
 │   ├── sm89_startup.py             # 由 SM89_ACTIVE / SM89_FULL 触发的补丁入口
