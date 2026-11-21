@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=boltz2-resident-cmp
 #SBATCH --partition=gpu_l40
+#SBATCH --nodelist=s60b05n02
 #SBATCH --account=lhlai_g1
 #SBATCH --qos=lhlail40
 #SBATCH --nodes=1
