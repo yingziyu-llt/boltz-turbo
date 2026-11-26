@@ -1,0 +1,33 @@
+{
+  "job_id": 32018770,
+  "partition": "gpu_h800",
+  "node": "s61b05n11",
+  "gpu": "NVIDIA H800 PCIe",
+  "slurm_state": "COMPLETED",
+  "exit_code": "0:0",
+  "slurm_elapsed": "00:03:37",
+  "remote_results": "/lustre3/lhlai_pkuhpc/llt/boltz2_acclerate/results/hsp90_trunk_diag_32018770",
+  "checkpoint_diff_summary": {
+    "shared_keys": 5019,
+    "exact_equal_keys": 5019,
+    "max_abs_diff": 0.0,
+    "only_conf_prefixes": ["bfactor_module", "template_module"],
+    "only_aff_prefixes": ["affinity_module1", "affinity_module2"]
+  },
+  "baseline_6lig": {
+    "steady_s_mol": 6.9316700281730546,
+    "struct_fwd_s_mol": 2.3462946450260156,
+    "aff_fwd_s_mol": 3.185268043385198,
+    "peak_allocated_gib": 9.945547580718994
+  },
+  "cross_ligand_similarity": {
+    "msa_delta0_pp": {"pair_rel_l1_mean": 0.019863745818535488, "per_res_p75": 0.013883389765396714, "per_res_max": 0.01938123255968094},
+    "pf_r3_z_pp": {"pair_cos_mean": 0.9981143792470296, "pair_rel_l1_mean": 0.05645190477371216, "per_res_p75": 0.03685997053980827, "per_res_max": 0.22616562247276306},
+    "pf_r3_s_p": {"pair_cos_mean": 0.9934293707211812, "pair_rel_l1_mean": 0.14057113354404768}
+  },
+  "msa_probes": {
+    "msa_r0_only": {"steady_s_mol": 5.197667099302635, "speedup": 1.3336, "val_rho": 0.6571, "prob_rho": 0.4857, "prob_mae": 0.0825, "ca_rmsd_A": 4.7214, "lig_rmsd_A": 0.8831},
+    "msa_top512": {"steady_s_mol": 5.016223160317168, "speedup": 1.3819, "val_rho": 0.9429, "prob_rho": 0.6, "prob_mae": 0.0467, "ca_rmsd_A": 1.2019, "lig_rmsd_A": 0.1600, "peak_gib": 2.9019},
+    "msa_r0_top512": {"steady_s_mol": 4.773175321170129, "speedup": 1.4522, "val_rho": 0.6571, "prob_rho": 0.0286, "prob_mae": 0.1087, "ca_rmsd_A": 4.7243, "lig_rmsd_A": 1.3292}
+  }
+}

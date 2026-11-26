@@ -61,6 +61,37 @@ PRESET_CONFIGS = {
         affinity_method="dpm2m", affinity_schedule="geometric", affinity_steps=16,
         affinity_recycling=5, affinity_samples=5,
     ),
+    "dpm2m_16_affkern": dict(
+        structure_method="dpm2m", structure_schedule="geometric", structure_steps=16,
+        structure_recycling=3, structure_samples=1,
+        affinity_method="dpm2m", affinity_schedule="geometric", affinity_steps=16,
+        affinity_recycling=5, affinity_samples=5,
+        affinity_use_kernels=True,
+    ),
+    "dpm2m_16_affkern_tc05": dict(
+        structure_method="dpm2m", structure_schedule="geometric", structure_steps=16,
+        structure_recycling=3, structure_samples=1,
+        affinity_method="dpm2m", affinity_schedule="geometric", affinity_steps=16,
+        affinity_recycling=5, affinity_samples=5,
+        affinity_use_kernels=True,
+        affinity_teacache=dict(msa_cache_after=1, pf_adaptive_thresh=0.05),
+    ),
+    "dpm2m_16_affkern_tc03": dict(
+        structure_method="dpm2m", structure_schedule="geometric", structure_steps=16,
+        structure_recycling=3, structure_samples=1,
+        affinity_method="dpm2m", affinity_schedule="geometric", affinity_steps=16,
+        affinity_recycling=5, affinity_samples=5,
+        affinity_use_kernels=True,
+        affinity_teacache=dict(msa_cache_after=1, pf_adaptive_thresh=0.03),
+    ),
+    "dpm2m_16_affkern_ops": dict(
+        structure_method="dpm2m", structure_schedule="geometric", structure_steps=16,
+        structure_recycling=3, structure_samples=1,
+        affinity_method="dpm2m", affinity_schedule="geometric", affinity_steps=16,
+        affinity_recycling=5, affinity_samples=5,
+        affinity_use_kernels=True,
+        ops_opt=True,
+    ),
     # 两阶段解耦对照配置
     "s_dpm16_a_stock200": dict(
         structure_method="dpm2m", structure_schedule="geometric", structure_steps=16,
@@ -257,6 +288,7 @@ class ResidentBoltzRunner:
         self.num_workers = num_workers
         self.preprocessing_threads = preprocessing_threads
         self.cache = {}
+        self.profile = None
         self.cold_loads = []
         self._active_run = None
         self._orig_process = main.process_inputs
@@ -346,10 +378,26 @@ class ResidentBoltzRunner:
             diffusion = model.structure_module
             orig_forward = model.forward
             orig_sample = diffusion.sample
+            profile = runner.profile
             orig_schedule = diffusion.sample_schedule
             orig_denoise = diffusion.preconditioned_network_forward
             orig_predict_args = dict(getattr(model, "predict_args", {}))
             orig_steering_args = dict(getattr(model, "steering_args", {}))
+            orig_use_kernels = bool(getattr(model, "use_kernels", False))
+            if cfg.get(prefix + "use_kernels") is not None:
+                model.use_kernels = bool(cfg[prefix + "use_kernels"])
+
+            restore_ops = None
+            if cfg.get("ops_opt", False):
+                from boltz_ops_opt import install_ops_opt
+                restore_ops = install_ops_opt(model)
+
+            restore_trunk = None
+            trunk_stats = None
+            if is_affinity and cfg.get("affinity_teacache"):
+                from boltz_trunk_opt import install_affinity_teacache
+                restore_trunk, trunk_stats = install_affinity_teacache(model, **cfg["affinity_teacache"])
+            forward_fn = model.forward
 
             # 支持独立覆盖两阶段 recycling / steps / samples（包括原本硬编码的 affinity recycling=5）。
             model.predict_args = dict(orig_predict_args)
@@ -370,6 +418,9 @@ class ResidentBoltzRunner:
                 "steps": steps,
                 "recycling_steps": recycling,
                 "diffusion_samples": samples,
+                "use_kernels": bool(getattr(model, "use_kernels", False)),
+                "ops_opt": bool(cfg.get("ops_opt", False)),
+                "affinity_teacache": cfg.get("affinity_teacache"),
                 "denoiser_calls": 0,
                 "sample_equivalent_nfe": 0,
                 "model_forward_seconds_per_item": [],
@@ -384,6 +435,9 @@ class ResidentBoltzRunner:
             def denoise(coords, sigma, network_condition_kwargs):
                 stage_info["denoiser_calls"] += 1
                 stage_info["sample_equivalent_nfe"] += int(coords.shape[0])
+                if profile is not None:
+                    return profile.measure("diffusion_sample.denoiser", orig_denoise,
+                                           coords, sigma, network_condition_kwargs)
                 return orig_denoise(coords, sigma, network_condition_kwargs)
 
             diffusion.preconditioned_network_forward = denoise
@@ -404,6 +458,8 @@ class ResidentBoltzRunner:
 
             @functools.wraps(orig_sample)
             def timed_sample(*x, **y):
+                if profile is not None:
+                    return profile.measure("diffusion_sample", chosen_sample, *x, **y)
                 torch.cuda.synchronize()
                 t0 = time.perf_counter()
                 out = chosen_sample(*x, **y)
@@ -414,9 +470,15 @@ class ResidentBoltzRunner:
 
             @functools.wraps(orig_forward)
             def timed_forward(*x, **y):
+                if profile is not None:
+                    out, elapsed, sample_elapsed = profile.forward(forward_fn, *x, **y)
+                    stage_info["model_forward_seconds_per_item"].append(elapsed)
+                    stage_info["diffusion_sample_seconds_per_item"].append(sample_elapsed)
+                    assert torch.isfinite(out["sample_atom_coords"]).all()
+                    return out
                 torch.cuda.synchronize()
                 t0 = time.perf_counter()
-                out = orig_forward(*x, **y)
+                out = forward_fn(*x, **y)
                 torch.cuda.synchronize()
                 stage_info["model_forward_seconds_per_item"].append(time.perf_counter() - t0)
                 return out
@@ -431,20 +493,34 @@ class ResidentBoltzRunner:
             torch.cuda.reset_peak_memory_stats()
             t0 = time.perf_counter()
             try:
-                result = runner._orig_predict(trainer, model, *a, **kw)
+                if profile is None:
+                    result = runner._orig_predict(trainer, model, *a, **kw)
+                else:
+                    with profile.stage(model, stage_name):
+                        result = runner._orig_predict(trainer, model, *a, **kw)
             finally:
+                if restore_trunk is not None:
+                    restore_trunk()
+                if restore_ops is not None:
+                    restore_ops()
                 model.forward = orig_forward
                 diffusion.sample = orig_sample
                 diffusion.sample_schedule = orig_schedule
                 diffusion.preconditioned_network_forward = orig_denoise
                 model.predict_args = orig_predict_args
                 model.steering_args = orig_steering_args
+                model.use_kernels = orig_use_kernels
             torch.cuda.synchronize()
             stage_info["trainer_wall_seconds"] = time.perf_counter() - t0
             stage_info["model_forward_seconds"] = float(sum(stage_info["model_forward_seconds_per_item"]))
             stage_info["diffusion_sample_seconds"] = float(sum(stage_info["diffusion_sample_seconds_per_item"]))
             stage_info["peak_allocated_gib"] = torch.cuda.max_memory_allocated() / 2**30
             stage_info["peak_reserved_gib"] = torch.cuda.max_memory_reserved() / 2**30
+            if trunk_stats is not None:
+                if trunk_stats["msa_recycles"]:
+                    stage_info["mean_msa_recycles"] = float(np.mean(trunk_stats["msa_recycles"]))
+                if trunk_stats["pf_recycles"]:
+                    stage_info["mean_pf_recycles"] = float(np.mean(trunk_stats["pf_recycles"]))
             run["stages"][stage_name] = stage_info
 
             if runner.offload_inactive_to_cpu and not run.get("bypass_cache", False):
@@ -668,6 +744,30 @@ def main_cli():
             "warmup_wall_seconds": warm_rec["wall_seconds"],
         }
         print("[WARMUP]", json.dumps(verification), flush=True)
+        if any(PRESET_CONFIGS[name].get("affinity_use_kernels") for name in config_names):
+            affkern_warm = runner.run_once(
+                label="warmup_affkern",
+                config=PRESET_CONFIGS["dpm2m_16_affkern"],
+                input_path=warmup_yaml,
+                out_dir=out_dir / "_warmup_affkern",
+                seed=args.seed,
+                repeat=0,
+                bypass_cache=False,
+                tag="warmup",
+            )
+            print("[WARMUP_AFFKERN]", json.dumps({"wall_seconds": affkern_warm["wall_seconds"]}), flush=True)
+        if any(PRESET_CONFIGS[name].get("ops_opt") for name in config_names):
+            ops_warm = runner.run_once(
+                label="warmup_ops",
+                config=PRESET_CONFIGS["dpm2m_16_affkern_ops"],
+                input_path=warmup_yaml,
+                out_dir=out_dir / "_warmup_ops",
+                seed=args.seed,
+                repeat=0,
+                bypass_cache=False,
+                tag="warmup",
+            )
+            print("[WARMUP_OPS]", json.dumps({"wall_seconds": ops_warm["wall_seconds"]}), flush=True)
 
     # 阶段 1：交错顺序（偶数轮正序、奇数轮倒序）稳态公平对比
     records = []
