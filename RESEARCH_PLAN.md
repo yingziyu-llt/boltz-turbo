@@ -167,9 +167,148 @@ DPM16 的采样加速为 11.97–12.18×，完整 CLI 中位数之比为 1.08–
 
 限制：三个历史 PDB 可能与训练集重叠；输入省略天然多聚体、水及非 binder 辅因子；图对称校正未施加立体化学约束，直接原子名指标同时保留；跨 seed 配体指标未作对称校正；smoke 无实验结构；当前无活性/非活性标签。完整分析位于远端 `results/stability/comparison.json`，分析入口为 `analyze_stability.py`。
 
+### 持久化常驻公平对比（A800 & L40，2026-11-22）
 
+1. **跨架构环境统一与故障定性**：L40 节点 `s60b03n01` 在作业 `31982149` 报错实为宿主驱动 `575.57.08`（CUDA 12.9）与 `torch==2.13.0+cu130` 不匹配，已核查 `ecc.errors.uncorrected.volatile.total = 0` 排除硬件 ECC 问题。为统一 A800 与全 L40 节点基线，已将集群主环境 `/lustre3/lhlai_pkuhpc/llt/.micromamba/envs/boltz2` 切换为 `torch==2.11.0+cu128` + `triton==3.6.0`（保留 `cuequivariance==0.11.1`、`boltz==2.2.1`；切换前完整依赖备份于集群 `tmp/boltz2_pre_cu12_freeze.txt`；`anthropic-env` 原封不动），在 `575.57.08` 与 `590.44.01` 两种驱动上均可运行。
+2. **实验口径**：`exp_resident_compare.py` 实现进程内权重常驻，冷加载后缓存命中 `checkpoint_load` 降至 0.023–0.028 s；使用 `data/batch`（384 aa、249 MSA、6 芳香族氨基酸配体），偶/奇轮次正反交错跑 2 repeats，显式设 `offload_inactive_to_cpu=False`、`reseed_per_stage=True`。A800 作业 `31982386`（`s61b03n01`，驱动 `590.44.01`，耗时 `00:18:00`）与 L40 作业 `31982387`（`s60b03n02`，驱动 `575.57.08`，耗时 `00:17:41`）均零错误完成，峰值 allocated 显存 3.22 GiB。
+3. **跨架构瓶颈交叉现象**（详细数据见 `results/resident_compare_a800_status.json`、`results/resident_compare_l40_status.json`）：
 
+| GPU | 配置 | 总耗时 (`s/mol`) | `prep` | `S_非扩散` | `S_扩散` | `A_非扩散` | `A_扩散` | 整机加速 | 扩散加速 | 扩散占比 | 非扩散(Trunk)占比 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| **A800** | `stock_200` | 27.32 | 0.23 | 4.08 | 6.90 | 3.48 | 12.62 | 1.00× | 1.00× | 71.5% | 28.5% |
+| **A800** | `stock_100` | 17.25 | 0.23 | 3.98 | 3.45 | 3.39 | 6.29 | 1.58× | 2.00× | 56.4% | 43.6% |
+| **A800** | `geometric_50` | 12.46 | 0.22 | 3.89 | 1.73 | 3.47 | 3.15 | 2.19× | 4.00× | 39.2% | 60.8% |
+| **A800** | `dpm2m_32` | 10.52 | 0.23 | 3.88 | 1.03 | 3.44 | 1.92 | 2.60× | 6.60× | 28.1% | 71.9% |
+| **A800** | **`dpm2m_16`** | **9.03** | 0.23 | 3.89 | 0.52 | 3.42 | 0.96 | **3.03×** | **13.22×** | 16.4% | **83.6%** |
+| **L40** | `stock_200` | **24.63** | 0.28 | 5.06 | 5.83 | 3.27 | 10.18 | 1.00× | 1.00× | 65.0% | 35.0% |
+| **L40** | `stock_100` | 16.50 | 0.28 | 4.91 | 2.93 | 3.25 | 5.12 | 1.49× | 1.99× | 48.8% | 51.2% |
+| **L40** | `geometric_50` | 12.55 | 0.28 | 4.91 | 1.46 | 3.36 | 2.53 | 1.96× | 4.01× | 31.8% | 68.2% |
+| **L40** | `dpm2m_32` | 10.90 | 0.28 | 4.88 | 0.84 | 3.27 | 1.63 | 2.26× | 6.49× | 22.6% | 77.4% |
+| **L40** | **`dpm2m_16`** | 9.71 | 0.28 | 4.92 | 0.43 | 3.27 | 0.81 | **2.54×** | **12.93×** | 12.8% | **87.2%** |
 
+> 关键发现：`stock_200` 下 L40 更快（小 batch diffusion 延迟更低：24.63 vs 27.32 s/mol）；当 `dpm2m_16` 将扩散压低 ~13× 后，A800 凭借更高的显存带宽在 Trunk 阶段胜出，总耗时反超 L40（9.03 vs 9.71 s/mol），此时非扩散 Trunk 已占 83.6–87.2%。
+
+### HSP90 真实实验亲和力基准（180 配体全量 & 60 配体解耦，2026-11-23）
+
+1. **数据集与评测脚本**：采用 `/lustre3/lhlai_pkuhpc/llt/hsp90_affinity`（靶点 PDB `4YKR`，236 残基，`hsp90.a3m` 5.4 MB 真实 MSA，YAML 无模板）。`hsp90_labels_primary.csv` 共 180 个配体：147 个定量实验 IC50（5.22 nM – 68.3 µM）+ 33 个删失 `>50 µM`；含 3 种化学骨架（`pyrimidin-2-amine` 62、`aryl-benzimidazolone` 61、`benzophenone-like` 57）；活性分布为 `≤1 µM` 73 个、`≤100 nM` 41 个。评测入口为 `analysis/eval_hsp90.py`（已修复删失行空字符串解析并用 `np.isfinite` 保护定量指标），提交脚本为 `slurm/hsp90_compare_a800.slurm`。
+2. **180 全量队列（`fair`，A800 `s61b04n01`，作业 `31984096`，耗时 `03:33:39`，0 失败，Peak 8.38 GiB，冷加载 48.60 s：`conf` 21.52 s + `aff` 27.09 s，`results/hsp90_a800_fair_status.json`）**：
+
+| 配置 | 稳态 (`s/mol`) | 加速 (`diff`加速 / `dif%`) | Quant `r` / `ρ` / `τ` / `cRMSE` | `≤1µM` AUROC / AP / EF10% (`-val` | `prob`) | `≤100nM` AUROC / AP / EF10% (`-val` | `prob`) | vs `stock` `ρ(val/prob)` | 分骨架 `r` (`aryl`/`pyrim`/`benzo`) |
+| --- | ---: | --- | --- | --- | --- | --- | --- |
+| `stock_200` | 25.02 | 1.00× (1.00× / 72.3%) | 0.448 / 0.411 / 0.286 / 1.61 | 0.706/0.720/2.47× \| 0.745/0.738/2.19× | 0.787/0.660/3.66× \| 0.780/0.651/3.66× | 1.000 / 1.000 | 0.733 / 0.455 / -0.174 |
+| `stock_100` | 15.95 | 1.57× (2.00× / 56.7%) | 0.457 / 0.422 / 0.298 / 1.60 | 0.710/0.717/2.47× \| 0.739/0.730/2.19× | 0.788/0.660/3.66× \| 0.774/0.648/3.66× | 0.992 / 0.995 | 0.737 / 0.476 / -0.177 |
+| `geometric_50` | 11.44 | 2.19× (4.00× / 39.6%) | 0.444 / 0.409 / 0.289 / 1.62 | 0.703/0.718/2.47× \| 0.744/0.733/2.19× | 0.782/0.654/3.66× \| 0.777/0.625/3.41× | 0.992 / 0.995 | 0.745 / 0.457 / -0.215 |
+| `dpm2m_32` | 9.66 | 2.59× (6.58× / 28.5%) | 0.459 / 0.423 / 0.299 / 1.59 | 0.711/0.721/2.47× \| 0.741/0.734/2.19× | 0.790/0.667/3.66× \| 0.777/0.642/3.41× | 0.993 / 0.993 | 0.748 / 0.471 / -0.169 |
+| **`dpm2m_16`** | **8.29** | **3.02×** (**13.14×** / 16.6%) | **0.458 / 0.422 / 0.298 / 1.59** | 0.710/0.717/2.47× \| 0.740/0.730/2.19× | **0.788/0.664/3.66×** \| 0.774/0.639/3.41× | **0.991 / 0.994** | **0.735 / 0.470 / -0.163** |
+
+> `dpm2m_16` 相对 `stock_200` 几何 Cα RMSD = 4.215 Å、配体 RMSD = 1.083 Å；affinity 预测排名相关性 Spearman ρ 达 `0.991–0.994`，真实实验定量与富集指标全程零退化甚至略微提升。
+
+3. **60 配体分层子集与两阶段解耦（`decoupled`，每骨架 20 个，定量 48，`≤1 µM` 25，`≤100 nM` 14；A800 作业 `31984097`，耗时 `01:30:36`，0 失败，Peak 8.33 GiB，`results/hsp90_a800_decoupled_status.json`）**：
+
+| 配置 | 预算 (`S_step/S_rec/S_n`, `A_step/A_rec/A_n`) | 总耗时 (`s/mol`) | 加速 | `prep` | `S_非扩散` | `S_扩散` | `A_非扩散` | `A_扩散` | 扩散占比 | Quant `r / ρ / cRMSE` | `≤100nM` AUROC / AP / EF10% (`-val`) | vs `stock` `ρ(val/prob)` |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |
+| `stock_200` | `200/3/1`, `200/5/5` | 25.39 | 1.00× | 0.29 | 2.49 | 5.32 | 4.32 | 12.94 | 71.9% | 0.477 / 0.400 / 1.57 | 0.812 / 0.702 / 3.57× | 1.000 / 1.000 |
+| `s_dpm16_a_stock200` | `16/3/1`, `200/5/5` | 20.52 | 1.24× | 0.28 | 2.45 | 0.39 | 4.39 | 13.00 | 65.3% | 0.476 / 0.400 / 1.57 | 0.806 / 0.688 / 3.57× | 0.993 / 0.995 |
+| `s_stock200_a_dpm16` | `200/3/1`, `16/5/5` | 13.39 | 1.90× | 0.28 | 2.45 | 5.32 | 4.35 | 1.00 | 47.1% | 0.477 / 0.412 / 1.58 | 0.821 / 0.714 / 3.57× | 0.993 / 0.994 |
+| `dpm2m_16` | `16/3/1`, `16/5/5` | 8.47 | 3.00× | 0.28 | 2.45 | 0.39 | 4.35 | 1.00 | 16.4% | 0.466 / 0.399 / 1.59 | 0.814 / 0.685 / 3.57× | 0.992 / 0.994 |
+| `dpm2m_16_affrec3` | `16/3/1`, `16/3/5` | 7.20 | 3.52× | 0.28 | 2.45 | 0.39 | 3.08 | 1.00 | 19.3% | 0.472 / 0.412 / 1.58 | 0.823 / 0.712 / 3.57× | 0.991 / 0.993 |
+| **`dpm2m_16_affrec1`** | **`16/3/1`, `16/1/5`** | **5.91** | **4.29×** | **0.28** | **2.45** | **0.39** | **1.79** | **1.00** | 23.6% | **0.494 / 0.425 / 1.52** | **0.842 / 0.708 / 3.57×** | 0.977 / 0.978 |
+| `dpm2m_16_affs1` | `16/3/1`, `16/5/1` | 7.60 | 3.34× | 0.29 | 2.45 | 0.39 | 4.11 | 0.36 | **9.9%** | 0.479 / **0.433** / 1.57 | 0.828 / **0.719** / 3.57× | 0.991 / 0.991 |
+
+> 关键发现：`s_stock200_a_dpm16` 相对 `stock_200` 几何 Cα RMSD 仅 **0.056 Å**、配体 **0.023 Å**，说明 `dpm2m_16` 的 affinity 扩散几乎无几何漂移；降低 `affinity_recycling` (`5 → 3 → 1`) 呈现精准线性省时（每轮 recycle 约 `0.64 s/mol`），使 `dpm2m_16_affrec1` 降至 **5.91 s/mol（4.29×，首次优于 6.9 s/mol 目标）** 且 HSP90 相关性不降反升；单独将 `affinity_samples` 降为 1（`dpm2m_16_affs1`）将扩散加速推至 **24.22×**（占比压至 9.9%），省时 `0.88 s/mol`（扩散 0.64 s + 非扩散 0.24 s）且排名完全不损。
+
+### AutoDock Vina 对接基线对照（HSP90 180 配体，2026-11-23）
+
+1. **实验设置与覆盖率**：入口 `experiments/exp_vina_hsp90.py`、`analysis/eval_vina_hsp90.py`、`slurm/vina_hsp90.slurm`。作业 `31991779` 在 `cn-short`（`c01b04n09`，16 核）正常 `COMPLETED (0:0)`（`00:17:39`），使用 `fap-docking`（`AutoDock Vina f458505-mod`、`RDKit 2026.03.1`、`Meeko 0.6.1`、`OPENMM_PLUGIN_DIR=/dev/null` 启用 OpenMM `Reference` 平台）。取 `4YKR` A 链（修补 `A:16:GLU`、`A:123:GLN`、`A:223:GLU` 缺失重原子）及共晶配体 `4EP A:301` 质心 `(-1.545, 9.506, 25.062)` 构建 `20×20×20 Å` 盒子，配体仅从 SMILES 生成（`ETKDGv3` + `MMFF94/UFF`），`exhaustiveness=8`、`--seed 0`（实录 180 个独立有效种子）。覆盖率 **180/180（0 失败）**；12 配体额外串行单核测试 **12/12（0 失败）**。
+2. **吞吐与精度对照**（`results/hsp90_vina_status.json`）：
+   - **Vina 吞吐口径**：16 核稳态 **3.07 s/mol**（`0.326 mol/s`）、16 核端到端（含 7.92 s 受体准备）**3.11 s/mol**、单核实测 **41.13 s/mol**（`0.0243 mol/s`）、CPU 总核时均值 **43.09 core·s/mol**。
+   - **180 全量集对比**：Vina 定量 `r=0.410 / ρ=0.412 / τ=0.284 / cRMSE=1.52`，但早期富集显著低于 Boltz-2（Vina `≤1µM` AUROC `0.670` / AP `0.591` / EF10% `1.78×`，`≤100nM` AUROC `0.721` / AP `0.460` / EF10% `2.20×`；而 `dpm2m_16` 在相同队列下达 `≤100nM` AUROC `0.788` / AP `0.664` / EF10% `3.66×`）。
+   - **60 子集对比**：Vina (`r=0.400 / ρ=0.419 / ≤100nM AUROC=0.702, AP=0.483, EF10%=2.14×`) 全面落后于加速版 `dpm2m_16_affrec1` (`r=0.494 / ρ=0.425 / ≤100nM AUROC=0.842, AP=0.708, EF10%=3.57×`，5.91 s/mol)。
+   - **信息不对称与强骨架互补性**：Vina 拥有 `4YKR` **holo 晶体结构与已知口袋中心坐标**，Boltz-2 为纯序列+SMILES 盲预测。即便如此，Boltz-2 在 `aryl-benzimidazolone`（全量 `r=0.733–0.735` vs Vina `0.153`）与 `pyrimidin-2-amine`（`r=0.455–0.470` vs Vina `0.202`）大幅领先；而 Vina 在 `benzophenone-like` 表现优异（`r=0.504 / ρ=0.363` vs Boltz-2 `-0.174 ~ -0.163`），显示 holo 口袋构象与盲折预测的显著互补性。
+
+### 当前交接状态与下一步精细 Profiling / 优化路线（2026-11-23 Handoff）
+
+> 当前仓库本地最新结果已沉淀在 `results/*_status.json`，**按用户要求暂不 commit/push**；下一步优先做精细 Profiling，再精准实施 Trunk / 预算 / 并发优化。
+
+#### 1. 已知代码解剖与精细拆分（已在集群验证源码）
+
+- 通过 `results/hsp90_a800_decoupled/summary.json` 中记录的 `model_forward_seconds` 与源码 `Boltz2.forward()` 实查：
+  - 在 `dpm2m_16_affrec1`（**5.91 s/mol**）上，`model.forward()` 占了 **95%+** 的 Trainer 时间（Structure：`model_forward 2.676 s` / `trainer_wall 2.843 s`；Affinity：`model_forward 2.726 s` / `trainer_wall 2.789 s`），DataLoader + CIF/JSON IO 合计仅 **0.23 s/mol**，`preprocessing` 仅 **0.28 s/mol**。
+  - `Boltz2.forward()` 调用链为：`input_embedder` → `for recycling_steps+1: [template_module (若 self.use_templates) → msa_module → pairformer_module]` → `distogram_module` → `diffusion_conditioning` → `structure_module.sample`（`autocast(enabled=False)`）→ `confidence_module`（**注意：`predict_step` 硬编码了 `run_confidence_sequentially=True`**，Affinity 阶段 `samples=5` 会串行跑 5 遍！）→（Affinity 阶段）`input_embedder(affinity=True)` + `affinity_module1` + `affinity_module2`（`autocast(enabled=False)`）。
+  - 集群 `boltz2` 环境已确认装有 `cuequivariance 0.11.1`、`cuequivariance_torch 0.11.1`、`cuequivariance_ops_torch 0.11.1`、`triton 3.6.0`。
+  - `hsp90_1.yaml` 无模板，需在 Profiling 中实测 `self.use_templates` 及 `self.use_kernels` 当前在 A800/L40 上的真实取值与 `template_module` 是否空转耗时。
+
+#### 2. 立即执行任务：精细 Profiling（`experiments/exp_profile_hsp90.py` + Slurm）
+
+不要盲写优化补丁，先跑出两阶段、完全无重叠且按子模块加和对齐的真实账本：
+- **Pass A（无 profiler 干扰的干净 CUDA Event 分账，在 pre-warm 后连续跑 N=8 个 HSP90 配体取中位数/均值）**：
+  - 分别对 **`dpm2m_16`**、**`dpm2m_16_affrec1`**、**`dpm2m_16_affrec1_affs1`** 测量（注意叠加 `affrec1 + affs1` 顺便直接拿到基线数字！）。
+  - Structure 与 Affinity 各自拆分不重叠子模块时间与调用次数：`input_embedder`、`template_module`、`msa_module`、`pairformer_module`（区分首次 vs recycle）、`distogram_module`、`diffusion_conditioning`、`diffusion_sample`（单独测 `preconditioned_network_forward` 单步 + sampler 开销）、`confidence_module`、`affinity_module1` / `affinity_module2`（区分内部 trunk vs affinity head），以及 `preprocessing`（含同一 MSA 重复解析耗时）和 `Trainer/DataLoader/IO`。
+  - 同步打印关键元信息：`(N_tokens, N_atoms, N_msa, N_templates)`、`model.use_templates`、`model.use_kernels`、各模块激活 dtype、以及 **CUDA active time vs wall time 差距（判断 CPU/kernel launch 气泡占比）**。
+- **Pass B（`torch.profiler` 算子热点，在 Pass A 结束后对 1 个热身配体抓取，不混入吞吐计时）**：
+  - 单独导出 `pairformer_module`、`msa_module`、`template_module`、`confidence_module`、`diffusion_conditioning`、`denoiser`、`affinity_module1` 的 Top-20 `self_cuda_time_total` 与 `self_cpu_time_total` 算子表（确认 `cuEquivariance` / Tensor Core / ATen 线性代数 / 小算子 launch 实际命中情况）。
+- **调度提示**：截至 `2026-11-23 14:43`，集群 `gpu_a800` 两个可用节点处于 `alloc`，`gpu_l40`（`s60b03n[01-02]`, `s60b05n02`）为 `mix` 有空闲卡；统一 `boltz2` 环境两卡通用，可优先用 A800 或先在 L40 出完整算子账本、再上 A800 对账。
+
+#### 3. Profiling 之后的优化路线图（按预期性价比排序）
+
+1. **第一梯队：无痛预算 Pareto 消融**
+   - 直接测试 `dpm2m_16_affrec1_affs1`（预期降至 `~5.0 s/mol`）；
+   - 消融 **`structure_recycling` (`3 → 1 / 0`)**（`S_非扩散` 目前 2.45 s 完全未动）与 `affinity_recycling = 0`；
+   - 步数下探 **`16 → 12 / 8` 步** 与 **UniPC**，确定训练前无重训算法下限。
+2. **第二梯队：无损/近似保真 Trunk & 执行系统优化（打掉 72–80% 非扩散瓶颈）**
+   - **跳过无模板时的空 `template_module`**（`dummy_template_skip`）；
+   - **排查并优化 `confidence_module`**（`run_confidence_sequentially` / Affinity 阶段是否必须对 5 个样本跑置信度，实际上源码第 233 行 `best_idx = argsort(dict_out["iptm"])` 仅用来挑 pose）；
+   - **在 A800 / L40 启用/移植 `cuEquivariance`、BF16 融合 Pairformer/Triangle/MSA 算子、`torch.compile` / CUDA Graph**（参考已有 `sm89/` 与 `anthropic` 套件思路，但直接针对当前统一 `torch 2.11+cu128` 栈的 Trunk 热点）；
+   - **消除同靶点冗余计算**：缓存在内存中的蛋白特征与单次 MSA 解析，消除 Stage 1→2 之间写盘 `.cif` 与 `Trainer.predict` 重启开销。
+3. **第三梯队：显存红利与并发吞吐**
+   - 当前 A800 峰值显存仅 **8.38 / 80 GiB（10.5%）**，探索单卡多进程并发（或安全的多配体 Batching）将单卡等效吞吐进一步压到超越 16 核 Vina（3.07 s/mol）。
+4. **第四梯队：虚拟筛选专属算法创新**
+   - **同靶点受体表征跨配体复用（Cross-ligand Receptor Trunk Caching）**；
+   - **结合 `4YKR` 晶体模板引导实验**：测试直接提供 `4YKR` 蛋白模板能否同时大幅削减 Structure Stage 耗时并改善 `benzophenone-like` 的负相关问题（独立公平对比，标注额外结构信息）。
+
+#### 4. 集群与工作流操作约定（交接必读）
+
+- **路径**：本机 `/home/yingziyu/boltz2_acclerate`；集群 `/lustre3/lhlai_pkuhpc/llt/boltz2_acclerate`；HSP90 数据集 `/lustre3/lhlai_pkuhpc/llt/hsp90_affinity`。
+- **集群操作规范**：集群经堡垒机交互认证，**严禁**直接使用 `ssh pku-hpc <cmd>`、`scp`、`sftp`、`rsync`。必须使用 `~/.cache/pku-hpc-stealth/start.sh`、`~/.agents/skills/pku-hpc-cluster/scripts/hpc run '...'`（单行命令 + `[[ ! -v HISTFILE && ! -o history ]]` 校验）、`hpc-stage` 传输，结束后务必执行 `hpc stop`。
+- **存储配额**：集群 `$HOME` 配额已满（0.77 TB），所有 `XDG_CACHE_HOME`、`TRITON_CACHE_DIR`、`TORCHINDUCTOR_CACHE_DIR`、`CUDA_CACHE_PATH`、`TMPDIR` 必须留在 Lustre 工作目录下的 `cache/` 与 `tmp/`。
+
+### HSP90 精细 Profiling：L40 实测
+
+北极星作业 `31991982`（`COMPLETED 0:0`），`results/hsp90_profile_31991982/` 含 `profile.json` 和六份 Chrome trace。三种配置均使用 `hsp90_1` 至 `hsp90_8`、seed 0、常驻权重，8/8 均写出两阶段结果；逐配体 CUDA Event 排他时间与 forward span 对齐。Pass A 串行预处理以分账 A3M，吞吐不与先前并行预处理的全量基准直接比较。Trunk 指 template、MSA 和 Pairformer 的排他时间之和。
+
+| 配置 | Pass A s/mol | Structure forward（s/mol） | Affinity forward（s/mol） | Structure Trunk | Affinity Trunk |
+|---|---:|---:|---:|---:|---:|
+| `dpm2m_16` | 10.435 | 3.076 | 5.251 | 85.1% | 76.7% |
+| `dpm2m_16_affrec1` | 7.413 | 3.011 | 2.588 | 84.7% | 52.4% |
+| `dpm2m_16_affrec1_affs1` | 6.793 | 3.023 | 1.965 | 84.7% | 69.0% |
+
+- 两阶段实际模板数均为 0；Structure 启用 `use_templates` 和 `use_kernels`，空模板占 33–38 ms/mol；Affinity 两个 flag 均关闭。优先检查 Affinity Trunk 的 kernel 路径，再评估空模板跳过。
+- `affrec1` 将 Affinity forward 减少 2.66 s/mol；在此基础上将样本数从 5 减到 1 再减少 0.62 s/mol。Affinity confidence 占比从 10.2% 降到 2.5%，串行调用从 5 次降到 1 次。`6.793 s/mol` 仅代表这 8 个配体；单样本的亲和力精度需另测。
+- 原始 A3M 每配置解析 8 次，合计 2.54–2.65 s（约 0.32 s/mol）。Pass B 的 Pairformer/MSA CUDA 算子榜首均为 `aten::copy_`；`self_cuda` 按发起算子归集，不等于独立内核名称。
+- Pass B 用 Chrome trace 中实际 kernel、memcpy、memset 区间的并集计算活跃率；CPU 回放作业 `31992372`（`COMPLETED 0:0`）已更新 `profile.json`，原日志的 99% 档数字误计了 GPU scope 注释。Structure 活跃率为 71.2% / 73.8% / 73.2%，Affinity 为 96.4% / 93.4% / 49.0%（表中顺序）。单样本 Affinity 的 profiler forward 为 3.34 s，Pass A 均值为 1.97 s；该 49.0% 不能当作稳态 kernel launch 空隙。
+
+### H800 Trunk 阶段优化与系统级缓存探索（已实测）
+
+1. **Affinity-only 算子裁剪与算子微基准（H800，60 配体）**：
+   - `32015556`：`dpm2m_16`（`6.854 s/mol`）→ `dpm2m_16_affkern`（仅在 Affinity 分支启用定制 kernel，`5.720 s/mol`，**`1.20×`**，`aff_fwd` `4.091 → 3.051 s`），`val_rho=0.9968`，`prob_rho=0.9948`，`EF10%(100nM)=3.571×`（结果见 `results/hsp90_h800_affkern_status.json`）。
+   - `32016460`：`boltz_ops_opt` + `bench_msa_ops` 实测 `5.55 → 5.45 s/mol`；OPM `1.20×`、PWA `0.96×`、Transition `torch.compile` `2.31×/1.62×`（尚未接入主干）。
+2. **Trunk 诊断与 TeaCache / Early-Exit（H800，6/12 配体）**：
+   - `32018770`（6 配体，`results/hsp90_trunk_diag_status.json`）：`boltz2_conf` 与 `boltz2_aff` 共享的 5,019 个权重键完全一致（`max_abs_diff=0.0`）；MSA delta 余弦相似度 `0.966–0.969`；Pairformer 在 `r=3..5` 层间余弦相似度 `0.9994–0.99997`，`rel_l1(z_PL)` 由 `5.3%` 降至 `0.8%`。
+   - `32018858`（12 配体，基线 `dpm2m_16_affkern` `6.369 s/mol`，`results/hsp90_trunk_teacache_status.json`）：
+     - `pf_adaptive_exit(0.03)`：`5.542 s/mol`（`1.15×`，`0.000 Å` RMSD，`prob_rho=0.9930`）。
+     - `trunk_tc_adaptive`：`4.740 s/mol`（`1.34×`，`val_rho=0.9860`，`prob_rho=0.9720`，`med_lig=0.774 Å`，`med_ca=3.593 Å`）。
+     - `trunk_tc_full`：`4.487 s/mol`（`1.42×`，`val_rho=0.9441`）。
+3. **Structure 零漂移 + Affinity 复用（H800，12 配体）**：
+   - `32018962`（基线 `6.277 s/mol`，`results/hsp90_aff_reuse_status.json`）：保持 Structure 分支完全不改（Cα/Ligand RMSD `0.000 Å`），仅在 Affinity 阶段（pocket crop，`shape_match_s/z=false`）启用 MSA recycle 复用与自适应 TeaCache：
+     - `aff_msa_r1_adapt05`：**`4.959 s/mol`**（**`1.27×`**，`aff_fwd` `3.093 → 1.823 s` [`-41%`]，`0.000 Å` RMSD，`val_rho=0.9930`，`prob_rho=0.9790`）。
+     - `aff_msa_r1_adapt03`：`5.173 s/mol`（`1.21×`，`0.000 Å` RMSD，`prob_rho=1.0000`）。
+   - 已落地至 `experiments/boltz_trunk_opt.py`（`install_affinity_teacache`）与 `experiments/exp_resident_compare.py`（`dpm2m_16_affkern_tc05` / `dpm2m_16_affkern_tc03`），60 配体 H800 最终对比作业 `32021024` 已提交（当前状态 `PENDING (Priority)`）。
+4. **跨配体缓存（Cross-Ligand Caching）探索（H800，12 配体）**：
+   - `32019064`（基线 `6.201 s/mol`，12 配体蛋白 token 完全一致 `matched_prot_ratio=1.0`、`238/198.5` prot tokens，`results/hsp90_xlig_cache_status.json`）：
+     - `xlig_msa_pp`：`4.655 s/mol`（`1.33×`，`amort_fwd=1.48×`，`prob_rho=0.6727`，`med_ca=3.956 Å`）。
+     - `xlig_pocket128/96`：`4.20–4.21 s/mol`（`1.47–1.48×`，`prob_rho=0.55–0.56`，`med_lig=4.90–5.66 Å`）。
+     - `xlig_warm_r2`：`3.862 s/mol`（`1.61×`，`amort_fwd=1.93×`，`prob_rho=0.5455`）。
+   - 结论：直接跨配体复用蛋白隐状态在未微调时精度退化明显；后续高吞吐方向转向**多配体 Batching 推理**（审计确认 `Boltz2InferenceDataModule.predict_dataloader` 硬编码 `batch_size=1`，`Boltz2.predict_step` 设 `run_confidence_sequentially=True` / `max_parallel_samples=1`，且 `BoltzWriter.write_on_batch_end` 存在 `coords = coords.unsqueeze(0)` 单样本假设，而 `collate` 已支持 `pad_to_max`）。
 
 ### 环境选择
 
