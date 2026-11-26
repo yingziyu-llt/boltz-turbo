@@ -1,0 +1,544 @@
+{
+  "job_id": 31991779,
+  "node": "c01b04n09",
+  "partition": "cn-short",
+  "cpu_cores": 16,
+  "vina_version": "AutoDock Vina f458505-mod",
+  "environment": "/lustre3/lhlai_pkuhpc/llt/.micromamba/envs/fap-docking",
+  "rdkit_version": "2026.03.1",
+  "meeko_version": "0.6.1",
+  "receptor_pdb": "4YKR",
+  "receptor_source": "/lustre3/lhlai_pkuhpc/llt/boltz2_acclerate/results/hsp90_vina/inputs/4YKR.pdb",
+  "receptor_source_url": "https://files.rcsb.org/download/4YKR.pdb",
+  "box_ligand": "4EP A:301 (21 heavy atoms; centroid only)",
+  "box_center": [
+    -1.5452380952380953,
+    9.50647619047619,
+    25.061761904761905
+  ],
+  "box_size": [
+    20.0,
+    20.0,
+    20.0
+  ],
+  "receptor_preparation": "Protein chain A only; blank/A altloc; strip input hydrogen, water and all HETATM. PDBFixer repairs missing heavy atoms/OXT without adding residues; Meeko adds H and assigns protonation/atom types/charges from residue templates (no explicit pH titration).",
+  "receptor_repaired_atoms": {
+    "A:16:GLU": [
+      "CG",
+      "CD",
+      "OE1",
+      "OE2"
+    ],
+    "A:123:GLN": [
+      "CG",
+      "CD",
+      "OE1",
+      "NE2"
+    ],
+    "A:223:GLU": [
+      "OXT"
+    ]
+  },
+  "ligand_preparation": "CSV SMILES only; preserve input formal charges and tautomer, add H with RDKit, ETKDGv3, MMFF94 (UFF if MMFF94 parameters unavailable), Meeko PDBQT.",
+  "exhaustiveness": 8,
+  "seed": 0,
+  "seed_note": "RDKit seed is fixed at 0. Vina receives --seed 0, which requests automatic seeds; the effective seeds are recorded in scores.jsonl.",
+  "distinct_vina_effective_seeds": 180,
+  "total_ligands": 180,
+  "failed_count": 0,
+  "coverage": 1.0,
+  "wall_seconds": 560.3471480179578,
+  "receptor_wall_seconds": 7.916616286966018,
+  "steady_wall_seconds": 552.4303888779832,
+  "cpu_core_seconds_per_mol": 43.086027130455555,
+  "wall_seconds_per_mol": 3.1130397112108765,
+  "throughput": {
+    "steady_multicore": {
+      "seconds_per_mol": 3.0690577159887957,
+      "mol_per_second": 0.3258329078629979
+    },
+    "end_to_end_multicore": {
+      "seconds_per_mol": 3.1130397112108765,
+      "mol_per_second": 0.3212294389945417
+    },
+    "single_core_measured": {
+      "seconds_per_mol": 41.12509061107994,
+      "mol_per_second": 0.024316055846709296
+    },
+    "cpu_core_work": {
+      "seconds_per_mol": 43.086027130455555,
+      "mol_per_second": 0.023209380548645325
+    }
+  },
+  "single_core_sample_wall_seconds": 493.5010873329593,
+  "single_core_sample_ids": [
+    "hsp90_1",
+    "hsp90_17",
+    "hsp90_33",
+    "hsp90_49",
+    "hsp90_68",
+    "hsp90_84",
+    "hsp90_100",
+    "hsp90_117",
+    "hsp90_134",
+    "hsp90_150",
+    "hsp90_166",
+    "hsp90_183"
+  ],
+  "single_core_sample_failed_count": 0,
+  "single_core_sample_failures": [],
+  "throughput_notes": "Steady multicore includes ligand preparation, Vina process launches and worker pool overhead, excludes one-time receptor preparation; end-to-end adds receptor preparation. Single-core measured on an evenly spaced CSV subset, run serially after multicore. CPU-core work sums worker and Vina CPU time; its inverse is molecules per CPU-core-second. Timings exclude queue, evaluation and staging, and multicore timings exclude the extra serial benchmark.",
+  "remote_results": "/lustre3/lhlai_pkuhpc/llt/boltz2_acclerate/results/hsp90_vina",
+  "information_asymmetry": "Vina uses a 4YKR holo crystal receptor and a known binding-site center from its co-crystallized ligand. Boltz-2 predicts from sequence and ligand SMILES without the crystal structure or pocket coordinates. No ligand pose coordinates were used as Vina input.",
+  "metrics": {
+    "pearson_r": 0.4097421218661955,
+    "spearman_rho": 0.41151465874021403,
+    "kendall_tau": 0.28393924619029953,
+    "crmse_kcal": 1.5181774315177394,
+    "raw_rmse_kcal": 1.5350160405111015,
+    "total_ligands": 180,
+    "quant_ligands": 147,
+    "screen_1uM": {
+      "auroc": 0.6700166431954936,
+      "ap": 0.5914777157893586,
+      "ef10": 1.7808219178082192,
+      "recall10": 0.1780821917808219,
+      "actives": 73
+    },
+    "screen_100nM": {
+      "auroc": 0.7213546236181786,
+      "ap": 0.46036635124992603,
+      "ef10": 2.1951219512195124,
+      "recall10": 0.21951219512195122,
+      "actives": 41
+    }
+  },
+  "per_chemotype": {
+    "aryl-benzimidazolone": {
+      "n_quant": 50,
+      "pearson_r": 0.15267349180816978,
+      "spearman_rho": 0.15770265096938918
+    },
+    "benzophenone-like": {
+      "n_quant": 46,
+      "pearson_r": 0.5039925933484737,
+      "spearman_rho": 0.3634209636420287
+    },
+    "pyrimidin-2-amine": {
+      "n_quant": 51,
+      "pearson_r": 0.20182996772454415,
+      "spearman_rho": 0.15141641839551467
+    }
+  },
+  "comparisons": [
+    {
+      "method": "Vina",
+      "cohort": "fair",
+      "metrics": {
+        "pearson_r": 0.4097421218661955,
+        "spearman_rho": 0.41151465874021403,
+        "kendall_tau": 0.28393924619029953,
+        "crmse_kcal": 1.5181774315177394,
+        "raw_rmse_kcal": 1.5350160405111015,
+        "total_ligands": 180,
+        "quant_ligands": 147,
+        "screen_1uM": {
+          "auroc": 0.6700166431954936,
+          "ap": 0.5914777157893586,
+          "ef10": 1.7808219178082192,
+          "recall10": 0.1780821917808219,
+          "actives": 73
+        },
+        "screen_100nM": {
+          "auroc": 0.7213546236181786,
+          "ap": 0.46036635124992603,
+          "ef10": 2.1951219512195124,
+          "recall10": 0.21951219512195122,
+          "actives": 41
+        }
+      },
+      "per_chemotype": {
+        "aryl-benzimidazolone": {
+          "n_quant": 50,
+          "pearson_r": 0.15267349180816978,
+          "spearman_rho": 0.15770265096938918
+        },
+        "benzophenone-like": {
+          "n_quant": 46,
+          "pearson_r": 0.5039925933484737,
+          "spearman_rho": 0.3634209636420287
+        },
+        "pyrimidin-2-amine": {
+          "n_quant": 51,
+          "pearson_r": 0.20182996772454415,
+          "spearman_rho": 0.15141641839551467
+        }
+      },
+      "screening_score": "-vina_score",
+      "steady_s_per_mol": 3.0690577159887957,
+      "steady_mol_per_s": 0.3258329078629979
+    },
+    {
+      "method": "stock_200",
+      "cohort": "fair",
+      "screening_score": "-affinity_pred_value",
+      "metrics": {
+        "pearson_r": 0.44811883991156737,
+        "spearman_rho": 0.4108346322552344,
+        "kendall_tau": 0.28636928789716426,
+        "crmse_kcal": 1.6068677687902622,
+        "raw_rmse_kcal": 1.6846444264295297,
+        "total_ligands": 180,
+        "quant_ligands": 147,
+        "screen_1uM": {
+          "actives": 73,
+          "auroc": 0.7055434643451542,
+          "ap": 0.7200373602565584,
+          "ef10": 2.4657534246575343,
+          "recall10": 0.2465753424657534
+        },
+        "screen_100nM": {
+          "actives": 41,
+          "auroc": 0.7873311107211791,
+          "ap": 0.6596049380642574,
+          "ef10": 3.658536585365854,
+          "recall10": 0.36585365853658536
+        }
+      },
+      "screening_by_probability": {
+        "1uM": {
+          "actives": 73,
+          "auroc": 0.7449750352067597,
+          "ap": 0.7377963638264619,
+          "ef10": 2.191780821917808,
+          "recall10": 0.2191780821917808
+        },
+        "100nM": {
+          "actives": 41,
+          "auroc": 0.7803123354974557,
+          "ap": 0.6506078684215348,
+          "ef10": 3.658536585365854,
+          "recall10": 0.36585365853658536
+        }
+      },
+      "per_chemotype": {
+        "aryl-benzimidazolone": {
+          "n_quant": 50,
+          "pearson_r": 0.7326833032784008,
+          "spearman_rho": 0.7071788715486195
+        },
+        "benzophenone-like": {
+          "n_quant": 46,
+          "pearson_r": -0.17392429553673483,
+          "spearman_rho": -0.10502919741048711
+        },
+        "pyrimidin-2-amine": {
+          "n_quant": 51,
+          "pearson_r": 0.4554586886864612,
+          "spearman_rho": 0.450810029903203
+        }
+      },
+      "steady_s_per_mol": 25.02376263322464,
+      "steady_mol_per_s": 0.03996201589093866
+    },
+    {
+      "method": "dpm2m_16",
+      "cohort": "fair",
+      "screening_score": "-affinity_pred_value",
+      "metrics": {
+        "pearson_r": 0.4575671352068451,
+        "spearman_rho": 0.4221608482270638,
+        "kendall_tau": 0.29758113603669434,
+        "crmse_kcal": 1.591397023453938,
+        "raw_rmse_kcal": 1.6801046996080364,
+        "total_ligands": 180,
+        "quant_ligands": 147,
+        "screen_1uM": {
+          "actives": 73,
+          "auroc": 0.7100243246703367,
+          "ap": 0.7173756730436998,
+          "ef10": 2.4657534246575343,
+          "recall10": 0.2465753424657534
+        },
+        "screen_100nM": {
+          "actives": 41,
+          "auroc": 0.7876820494823653,
+          "ap": 0.6641479792695936,
+          "ef10": 3.658536585365854,
+          "recall10": 0.36585365853658536
+        }
+      },
+      "screening_by_probability": {
+        "1uM": {
+          "actives": 73,
+          "auroc": 0.7397260273972602,
+          "ap": 0.7296821849025642,
+          "ef10": 2.191780821917808,
+          "recall10": 0.2191780821917808
+        },
+        "100nM": {
+          "actives": 41,
+          "auroc": 0.7741709071766977,
+          "ap": 0.6392677609063192,
+          "ef10": 3.4146341463414633,
+          "recall10": 0.34146341463414637
+        }
+      },
+      "per_chemotype": {
+        "aryl-benzimidazolone": {
+          "n_quant": 50,
+          "pearson_r": 0.7347874275077152,
+          "spearman_rho": 0.7238895558223288
+        },
+        "benzophenone-like": {
+          "n_quant": 46,
+          "pearson_r": -0.16308887694367552,
+          "spearman_rho": -0.0705346169778492
+        },
+        "pyrimidin-2-amine": {
+          "n_quant": 51,
+          "pearson_r": 0.4701164112345345,
+          "spearman_rho": 0.4568739271133043
+        }
+      },
+      "steady_s_per_mol": 8.291876359770281,
+      "steady_mol_per_s": 0.12059996514802158
+    },
+    {
+      "method": "Vina",
+      "cohort": "decoupled",
+      "metrics": {
+        "pearson_r": 0.3996472743468416,
+        "spearman_rho": 0.41880411861386974,
+        "kendall_tau": 0.2984018916709947,
+        "crmse_kcal": 1.5441294585462084,
+        "raw_rmse_kcal": 1.568460622416591,
+        "total_ligands": 60,
+        "quant_ligands": 48,
+        "screen_1uM": {
+          "auroc": 0.6525714285714286,
+          "ap": 0.6362009259446919,
+          "ef10": 2.0,
+          "recall10": 0.2,
+          "actives": 25
+        },
+        "screen_100nM": {
+          "auroc": 0.7018633540372671,
+          "ap": 0.4832264175391014,
+          "ef10": 2.142857142857143,
+          "recall10": 0.21428571428571427,
+          "actives": 14
+        }
+      },
+      "per_chemotype": {
+        "aryl-benzimidazolone": {
+          "n_quant": 16,
+          "pearson_r": 0.10224656308632193,
+          "spearman_rho": -0.02058823529411765
+        },
+        "benzophenone-like": {
+          "n_quant": 16,
+          "pearson_r": 0.5075905658440479,
+          "spearman_rho": 0.39764402476595395
+        },
+        "pyrimidin-2-amine": {
+          "n_quant": 16,
+          "pearson_r": 0.0689538508338365,
+          "spearman_rho": 0.12941176470588234
+        }
+      },
+      "screening_score": "-vina_score",
+      "steady_s_per_mol": null,
+      "steady_mol_per_s": null
+    },
+    {
+      "method": "stock_200",
+      "cohort": "decoupled",
+      "screening_score": "-affinity_pred_value",
+      "metrics": {
+        "pearson_r": 0.47744834386729496,
+        "spearman_rho": 0.40013028623497526,
+        "kendall_tau": 0.2841922777818997,
+        "crmse_kcal": 1.5746668766029894,
+        "raw_rmse_kcal": 1.6686874438527226,
+        "total_ligands": 60,
+        "quant_ligands": 48,
+        "screen_1uM": {
+          "actives": 25,
+          "auroc": 0.6948571428571428,
+          "ap": 0.731207152838526,
+          "ef10": 2.4,
+          "recall10": 0.24
+        },
+        "screen_100nM": {
+          "actives": 14,
+          "auroc": 0.812111801242236,
+          "ap": 0.7018642804487003,
+          "ef10": 3.5714285714285716,
+          "recall10": 0.35714285714285715
+        }
+      },
+      "screening_by_probability": {
+        "1uM": {
+          "actives": 25,
+          "auroc": 0.704,
+          "ap": 0.7216476919015716,
+          "ef10": 2.0,
+          "recall10": 0.2
+        },
+        "100nM": {
+          "actives": 14,
+          "auroc": 0.7468944099378882,
+          "ap": 0.6552585295347455,
+          "ef10": 2.8571428571428568,
+          "recall10": 0.2857142857142857
+        }
+      },
+      "per_chemotype": {
+        "aryl-benzimidazolone": {
+          "n_quant": 16,
+          "pearson_r": 0.7801347865741807,
+          "spearman_rho": 0.7676470588235293
+        },
+        "benzophenone-like": {
+          "n_quant": 16,
+          "pearson_r": -0.11823854592656553,
+          "spearman_rho": -0.11634769613522357
+        },
+        "pyrimidin-2-amine": {
+          "n_quant": 16,
+          "pearson_r": 0.5145761491361931,
+          "spearman_rho": 0.39999999999999997
+        }
+      },
+      "steady_s_per_mol": 25.38762010319624,
+      "steady_mol_per_s": 0.039389276975753326
+    },
+    {
+      "method": "dpm2m_16",
+      "cohort": "decoupled",
+      "screening_score": "-affinity_pred_value",
+      "metrics": {
+        "pearson_r": 0.46628000328876973,
+        "spearman_rho": 0.39850175434146695,
+        "kendall_tau": 0.2895208829903103,
+        "crmse_kcal": 1.5861806251671333,
+        "raw_rmse_kcal": 1.6811365754675023,
+        "total_ligands": 60,
+        "quant_ligands": 48,
+        "screen_1uM": {
+          "actives": 25,
+          "auroc": 0.6937142857142857,
+          "ap": 0.7363391448114317,
+          "ef10": 2.4,
+          "recall10": 0.24
+        },
+        "screen_100nM": {
+          "actives": 14,
+          "auroc": 0.8136645962732919,
+          "ap": 0.685180349326312,
+          "ef10": 3.5714285714285716,
+          "recall10": 0.35714285714285715
+        }
+      },
+      "screening_by_probability": {
+        "1uM": {
+          "actives": 25,
+          "auroc": 0.7142857142857143,
+          "ap": 0.7328795660461316,
+          "ef10": 2.0,
+          "recall10": 0.2
+        },
+        "100nM": {
+          "actives": 14,
+          "auroc": 0.7608695652173914,
+          "ap": 0.6717866480383595,
+          "ef10": 3.5714285714285716,
+          "recall10": 0.35714285714285715
+        }
+      },
+      "per_chemotype": {
+        "aryl-benzimidazolone": {
+          "n_quant": 16,
+          "pearson_r": 0.7716168305657373,
+          "spearman_rho": 0.7676470588235293
+        },
+        "benzophenone-like": {
+          "n_quant": 16,
+          "pearson_r": -0.0851923518883363,
+          "spearman_rho": -0.13696627519716192
+        },
+        "pyrimidin-2-amine": {
+          "n_quant": 16,
+          "pearson_r": 0.4768793350846487,
+          "spearman_rho": 0.39999999999999997
+        }
+      },
+      "steady_s_per_mol": 8.473345720907673,
+      "steady_mol_per_s": 0.11801713667041064
+    },
+    {
+      "method": "dpm2m_16_affrec1",
+      "cohort": "decoupled",
+      "screening_score": "-affinity_pred_value",
+      "metrics": {
+        "pearson_r": 0.4942738171921912,
+        "spearman_rho": 0.42461254903404916,
+        "kendall_tau": 0.2966256899348578,
+        "crmse_kcal": 1.5244414925698533,
+        "raw_rmse_kcal": 1.6937450811055197,
+        "total_ligands": 60,
+        "quant_ligands": 48,
+        "screen_1uM": {
+          "actives": 25,
+          "auroc": 0.7062857142857143,
+          "ap": 0.7438987294529178,
+          "ef10": 2.4,
+          "recall10": 0.24
+        },
+        "screen_100nM": {
+          "actives": 14,
+          "auroc": 0.8416149068322981,
+          "ap": 0.7076017126271438,
+          "ef10": 3.5714285714285716,
+          "recall10": 0.35714285714285715
+        }
+      },
+      "screening_by_probability": {
+        "1uM": {
+          "actives": 25,
+          "auroc": 0.7302857142857143,
+          "ap": 0.7439910491832731,
+          "ef10": 2.4,
+          "recall10": 0.24
+        },
+        "100nM": {
+          "actives": 14,
+          "auroc": 0.7608695652173914,
+          "ap": 0.6835312589301952,
+          "ef10": 3.5714285714285716,
+          "recall10": 0.35714285714285715
+        }
+      },
+      "per_chemotype": {
+        "aryl-benzimidazolone": {
+          "n_quant": 16,
+          "pearson_r": 0.7769379561136035,
+          "spearman_rho": 0.7411764705882353
+        },
+        "benzophenone-like": {
+          "n_quant": 16,
+          "pearson_r": -0.05643085721760196,
+          "spearman_rho": -0.1222387187243488
+        },
+        "pyrimidin-2-amine": {
+          "n_quant": 16,
+          "pearson_r": 0.47954917860745583,
+          "spearman_rho": 0.411764705882353
+        }
+      },
+      "steady_s_per_mol": 5.912390669520634,
+      "steady_mol_per_s": 0.1691363199585521
+    }
+  ]
+}

@@ -20,6 +20,8 @@ tmp/
 # Generated datasets
 data/batch/
 data/stability/
+data/fep/
+data/litpcba/
 
 # Heavy experiment outputs & logs (keep curated results/*_status.json)
 results/*/

@@ -1,0 +1,241 @@
+{
+  "metadata": {
+    "gpu": "NVIDIA A800-SXM4-80GB",
+    "torch": "2.11.0+cu128",
+    "boltz": "2.2.1",
+    "input": "/lustre3/lhlai_pkuhpc/llt/boltz2_acclerate/data/batch",
+    "molecules": 6,
+    "ligand_names": [
+      "dopa",
+      "fluorophenylalanine",
+      "methylphenylalanine",
+      "phenylalanine",
+      "tryptophan",
+      "tyrosine"
+    ],
+    "suite": "fair",
+    "configs": [
+      "stock_200",
+      "stock_100",
+      "geometric_50",
+      "dpm2m_32",
+      "dpm2m_16"
+    ],
+    "repeats": 2,
+    "seed": 0,
+    "offload_inactive_to_cpu": false,
+    "reseed_per_stage": true
+  },
+  "reference": "stock_200",
+  "cold_loads": [
+    {
+      "checkpoint": "boltz2_conf.ckpt",
+      "seconds": 21.590059145353734
+    },
+    {
+      "checkpoint": "boltz2_aff.ckpt",
+      "seconds": 19.647700691595674
+    }
+  ],
+  "cache_verification": {
+    "ligand": "dopa",
+    "cold_wall_seconds": 94.43121538031846,
+    "cold_checkpoint_load_seconds": 41.23775983694941,
+    "warm_wall_seconds": 31.79421837348491,
+    "warm_checkpoint_load_seconds": 0.023204360157251358,
+    "warm_all_cache_hits": true,
+    "cif_diff": {
+      "atoms": 2975,
+      "max_abs_coord_error_A": 6.89137077331543,
+      "rms_coord_error_A": 0.3373243683327096
+    },
+    "score_abs_diffs": {
+      "affinity_pred_value": 0.02329540252685547,
+      "affinity_probability_binary": 0.01958322525024414,
+      "affinity_pred_value1": 0.022109031677246094,
+      "affinity_probability_binary1": 0.03618320822715759,
+      "affinity_pred_value2": 0.024481892585754395,
+      "affinity_probability_binary2": 0.0029832422733306885
+    },
+    "max_abs_score_diff": 0.03618320822715759,
+    "exact_match": false
+  },
+  "summary_rows": [
+    {
+      "config": "stock_200",
+      "repeats": 2,
+      "molecules": 6,
+      "median_steady_seconds": 163.89401190401986,
+      "steady_seconds_per_repeat": [
+        164.94289158005267,
+        162.84513222798705
+      ],
+      "median_gpu_seconds_per_molecule": 27.315668650669977,
+      "median_molecules_per_second": 0.03660902512724955,
+      "steady_speedup_vs_ref": 1.0,
+      "median_diffusion_seconds": 117.11451396532357,
+      "diffusion_speedup_vs_ref": 1.0,
+      "diffusion_share": 0.7145746974203582,
+      "non_diffusion_share": 0.2854253025796418,
+      "median_preprocessing_seconds": 1.3906437628902495,
+      "median_structure_trainer_seconds": 65.88893556082621,
+      "median_structure_diffusion_seconds": 41.403695094864815,
+      "median_affinity_trainer_seconds": 96.57828496256843,
+      "median_affinity_diffusion_seconds": 75.71081887045875,
+      "peak_allocated_gib": 3.224069595336914,
+      "repeat_max_abs_prob_diff": 0.005835920572280884,
+      "vs_ref_prob_mae": 0.0,
+      "vs_ref_prob_max_abs_diff": 0.0,
+      "vs_ref_pred_value_mae": 0.0,
+      "vs_ref_prob_spearman": 1.0,
+      "geometry_vs_ref": {
+        "evaluated_ligands": 6,
+        "median_protein_ca_rmsd_A": 0.0,
+        "median_ligand_rmsd_A": 0.0
+      }
+    },
+    {
+      "config": "stock_100",
+      "repeats": 2,
+      "molecules": 6,
+      "median_steady_seconds": 103.52910462580621,
+      "steady_seconds_per_repeat": [
+        103.43010452017188,
+        103.62810473144054
+      ],
+      "median_gpu_seconds_per_molecule": 17.254850770967703,
+      "median_molecules_per_second": 0.05795471738779443,
+      "steady_speedup_vs_ref": 1.5830718569082145,
+      "median_diffusion_seconds": 58.41851932136342,
+      "diffusion_speedup_vs_ref": 2.004749783558709,
+      "diffusion_share": 0.5642714629138376,
+      "non_diffusion_share": 0.43572853708616244,
+      "median_preprocessing_seconds": 1.3914338103495538,
+      "median_structure_trainer_seconds": 44.02210272755474,
+      "median_structure_diffusion_seconds": 20.695876515936106,
+      "median_affinity_trainer_seconds": 58.07995608774945,
+      "median_affinity_diffusion_seconds": 37.72264280542731,
+      "peak_allocated_gib": 3.2240676879882812,
+      "repeat_max_abs_prob_diff": 0.0022862255573272705,
+      "vs_ref_prob_mae": 0.08679206172625224,
+      "vs_ref_prob_max_abs_diff": 0.1667640209197998,
+      "vs_ref_pred_value_mae": 0.33508692185084027,
+      "vs_ref_prob_spearman": 0.5428571428571429,
+      "geometry_vs_ref": {
+        "evaluated_ligands": 6,
+        "median_protein_ca_rmsd_A": 2.8763199725699176,
+        "median_ligand_rmsd_A": 1.544053849896735
+      }
+    },
+    {
+      "config": "geometric_50",
+      "repeats": 2,
+      "molecules": 6,
+      "median_steady_seconds": 74.73211837280542,
+      "steady_seconds_per_repeat": [
+        74.71581999771297,
+        74.74841674789786
+      ],
+      "median_gpu_seconds_per_molecule": 12.455353062134236,
+      "median_molecules_per_second": 0.08028676465544117,
+      "steady_speedup_vs_ref": 2.193086660362353,
+      "median_diffusion_seconds": 29.262768232263625,
+      "diffusion_speedup_vs_ref": 4.002167977949506,
+      "diffusion_share": 0.39156883103841167,
+      "non_diffusion_share": 0.6084311689615883,
+      "median_preprocessing_seconds": 1.3311261162161827,
+      "median_structure_trainer_seconds": 33.680199888534844,
+      "median_structure_diffusion_seconds": 10.365273075178266,
+      "median_affinity_trainer_seconds": 39.68466725293547,
+      "median_affinity_diffusion_seconds": 18.89749515708536,
+      "peak_allocated_gib": 3.2240657806396484,
+      "repeat_max_abs_prob_diff": 0.010413885116577148,
+      "vs_ref_prob_mae": 0.04130855202674866,
+      "vs_ref_prob_max_abs_diff": 0.08152991533279419,
+      "vs_ref_pred_value_mae": 0.34358060359954834,
+      "vs_ref_prob_spearman": 0.6,
+      "geometry_vs_ref": {
+        "evaluated_ligands": 6,
+        "median_protein_ca_rmsd_A": 2.494231666464262,
+        "median_ligand_rmsd_A": 2.5966909614837816
+      }
+    },
+    {
+      "config": "dpm2m_32",
+      "repeats": 2,
+      "molecules": 6,
+      "median_steady_seconds": 63.115712999366224,
+      "steady_seconds_per_repeat": [
+        63.02648573555052,
+        63.204940263181925
+      ],
+      "median_gpu_seconds_per_molecule": 10.51928549989437,
+      "median_molecules_per_second": 0.09506349076750902,
+      "steady_speedup_vs_ref": 2.596722814581301,
+      "median_diffusion_seconds": 17.745530747342855,
+      "diffusion_speedup_vs_ref": 6.599662508423978,
+      "diffusion_share": 0.28115868306076247,
+      "non_diffusion_share": 0.7188413169392376,
+      "median_preprocessing_seconds": 1.400588659569621,
+      "median_structure_trainer_seconds": 29.496355316136032,
+      "median_structure_diffusion_seconds": 6.199600130785257,
+      "median_affinity_trainer_seconds": 32.18297455646098,
+      "median_affinity_diffusion_seconds": 11.545930616557598,
+      "peak_allocated_gib": 3.22406005859375,
+      "repeat_max_abs_prob_diff": 0.009572327136993408,
+      "vs_ref_prob_mae": 0.06361803412437439,
+      "vs_ref_prob_max_abs_diff": 0.14908230304718018,
+      "vs_ref_pred_value_mae": 0.2455846667289734,
+      "vs_ref_prob_spearman": 0.2571428571428572,
+      "geometry_vs_ref": {
+        "evaluated_ligands": 6,
+        "median_protein_ca_rmsd_A": 3.7876665179609743,
+        "median_ligand_rmsd_A": 2.4108003550677024
+      }
+    },
+    {
+      "config": "dpm2m_16",
+      "repeats": 2,
+      "molecules": 6,
+      "median_steady_seconds": 54.166079422459006,
+      "steady_seconds_per_repeat": [
+        54.13574673049152,
+        54.196412114426494
+      ],
+      "median_gpu_seconds_per_molecule": 9.027679903743167,
+      "median_molecules_per_second": 0.11077043167928093,
+      "steady_speedup_vs_ref": 3.025768408042915,
+      "median_diffusion_seconds": 8.861313125584275,
+      "diffusion_speedup_vs_ref": 13.216383656186574,
+      "diffusion_share": 0.1635952466943747,
+      "non_diffusion_share": 0.8364047533056254,
+      "median_preprocessing_seconds": 1.3972364962100983,
+      "median_structure_trainer_seconds": 26.42549322731793,
+      "median_structure_diffusion_seconds": 3.1015407261438668,
+      "median_affinity_trainer_seconds": 26.307692734058946,
+      "median_affinity_diffusion_seconds": 5.759772399440408,
+      "peak_allocated_gib": 3.22406005859375,
+      "repeat_max_abs_prob_diff": 0.006753802299499512,
+      "vs_ref_prob_mae": 0.07263894875844319,
+      "vs_ref_prob_max_abs_diff": 0.16497278213500977,
+      "vs_ref_pred_value_mae": 0.29327420393625897,
+      "vs_ref_prob_spearman": 0.08571428571428573,
+      "geometry_vs_ref": {
+        "evaluated_ligands": 6,
+        "median_protein_ca_rmsd_A": 3.870848298455037,
+        "median_ligand_rmsd_A": 2.470803811605322
+      }
+    }
+  ],
+  "notes": [
+    "Steady-state wall time excludes one-time checkpoint loading and includes preprocessing, structure, affinity, and CIF/JSON output.",
+    "Repeats run in alternating forward/reverse order in the same resident process after warmup.",
+    "Geometry RMSD is computed relative to the stock reference prediction (not experimental crystal structures), matching ligand atoms by name without symmetry correction."
+  ],
+  "job_id": 31982386,
+  "node": "s61b03n01",
+  "driver": "590.44.01",
+  "ecc_uncorrected_errors": 0,
+  "slurm_elapsed": "00:18:00",
+  "remote_results": "/lustre3/lhlai_pkuhpc/llt/boltz2_acclerate/results/resident_compare_a800_fair"
+}
