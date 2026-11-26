@@ -1,0 +1,66 @@
+{
+  "job_id": 32016460,
+  "partition": "gpu_h800",
+  "node": "s61b05n11",
+  "gpu": "NVIDIA H800 PCIe",
+  "slurm_state": "COMPLETED",
+  "exit_code": "0:0",
+  "slurm_elapsed": "00:13:17",
+  "remote_results": "/lustre3/lhlai_pkuhpc/llt/boltz2_acclerate/results/hsp90_h800_ops_32016460",
+  "dataset": "HSP90 (4YKR) data/hsp90_strat60",
+  "total_ligands": 60,
+  "quant_ligands": 48,
+  "failed_examples": 0,
+  "microbenchmark_h800": {
+    "OuterProductMean": {"stock_ms": 12.89, "opt_ms": 10.72, "speedup": 1.20, "max_abs": 0.0},
+    "PairWeightedAveraging": {"stock_ms": 20.07, "opt_ms": 20.99, "speedup": 0.96, "max_abs": 0.0},
+    "Transition_MSA_compile": {"stock_ms": 10.87, "compile_ms": 4.70, "speedup": 2.31, "max_abs": 0.0},
+    "Transition_Pair_compile": {"stock_ms": 0.60, "compile_ms": 0.37, "speedup": 1.62, "max_abs": 0.0}
+  },
+  "stage_breakdown": {
+    "dpm2m_16_affkern": {
+      "steady_s_mol": 5.5473767181004705,
+      "all_cache_hits": true,
+      "structure_fwd_s": 130.04237434710376,
+      "affinity_fwd_s": 173.48442160640843,
+      "peak_allocated_gib": 8.355194091796875
+    },
+    "dpm2m_16_affkern_ops": {
+      "steady_s_mol": 5.453981286780133,
+      "all_cache_hits": true,
+      "structure_fwd_s": 127.48278166214004,
+      "affinity_fwd_s": 170.57494859793223,
+      "peak_allocated_gib": 8.346550941467285
+    }
+  },
+  "direct_diff": {
+    "affinity_pred_value": {
+      "max_abs": 0.21378159523010254,
+      "mean_abs": 0.03591044650723537,
+      "pearson_r": 0.9984255281363777,
+      "spearman_rho": 0.9961100305640458
+    },
+    "affinity_probability_binary": {
+      "max_abs": 0.047811150550842285,
+      "mean_abs": 0.007354078441858291,
+      "pearson_r": 0.9982292698034696,
+      "spearman_rho": 0.9951653237010283
+    }
+  },
+  "experimental_eval": {
+    "dpm2m_16_affkern": {
+      "quant_pearson_r": 0.485,
+      "quant_spearman_rho": 0.422,
+      "quant_crmse_kcal": 1.56,
+      "screen_1uM_prob_auroc": 0.714,
+      "screen_100nM_prob_ef10": 3.5714285714285716
+    },
+    "dpm2m_16_affkern_ops": {
+      "quant_pearson_r": 0.4779500887750033,
+      "quant_spearman_rho": 0.4130499725901406,
+      "quant_crmse_kcal": 1.571817318728182,
+      "screen_1uM_prob_auroc": 0.7188571428571429,
+      "screen_100nM_prob_ef10": 3.5714285714285716
+    }
+  }
+}

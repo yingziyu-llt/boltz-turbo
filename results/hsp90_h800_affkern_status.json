@@ -1,0 +1,86 @@
+{
+  "job_id": 32015556,
+  "partition": "gpu_h800",
+  "node": "s61b05n11",
+  "gpu": "NVIDIA H800 PCIe",
+  "slurm_state": "COMPLETED",
+  "exit_code": "0:0",
+  "slurm_elapsed": "00:14:40",
+  "remote_results": "/lustre3/lhlai_pkuhpc/llt/boltz2_acclerate/results/hsp90_h800_affkern_32015556",
+  "dataset": "HSP90 (4YKR) data/hsp90_strat60",
+  "total_ligands": 60,
+  "quant_ligands": 48,
+  "actives_le_1uM": 25,
+  "actives_le_100nM": 14,
+  "failed_examples": 0,
+  "stage_breakdown": {
+    "dpm2m_16": {
+      "steady_s_mol": 6.853784234817916,
+      "all_cache_hits": true,
+      "preprocessing_s": 16.66766763594933,
+      "structure": {
+        "use_kernels": true,
+        "trainer_wall_seconds": 145.56660922500305,
+        "model_forward_seconds": 136.19470893684775,
+        "diffusion_sample_seconds": 17.21590441185981,
+        "peak_allocated_gib": 8.355201244354248
+      },
+      "affinity": {
+        "use_kernels": false,
+        "trainer_wall_seconds": 248.90775521518663,
+        "model_forward_seconds": 245.46116026956588,
+        "diffusion_sample_seconds": 36.75260064215399,
+        "peak_allocated_gib": 7.46913480758667
+      }
+    },
+    "dpm2m_16_affkern": {
+      "steady_s_mol": 5.719807587385488,
+      "all_cache_hits": true,
+      "preprocessing_s": 16.418621483026072,
+      "structure": {
+        "use_kernels": true,
+        "trainer_wall_seconds": 140.26589468913153,
+        "model_forward_seconds": 129.95952128851786,
+        "diffusion_sample_seconds": 17.221214312827215,
+        "peak_allocated_gib": 8.355202198028564
+      },
+      "affinity": {
+        "use_kernels": true,
+        "trainer_wall_seconds": 186.45914755598642,
+        "model_forward_seconds": 183.06987134297378,
+        "diffusion_sample_seconds": 36.36557271704078,
+        "peak_allocated_gib": 7.469141483306885
+      }
+    }
+  },
+  "direct_diff": {
+    "affinity_pred_value": {
+      "max_abs": 0.20296144485473633,
+      "mean_abs": 0.04289394523948431,
+      "pearson_r": 0.9983065837435607,
+      "spearman_rho": 0.9968324534592944
+    },
+    "affinity_probability_binary": {
+      "max_abs": 0.050563156604766846,
+      "mean_abs": 0.006876714775959651,
+      "pearson_r": 0.9981986557853632,
+      "spearman_rho": 0.9947763267574329
+    }
+  },
+  "experimental_eval": {
+    "dpm2m_16": {
+      "quant_pearson_r": 0.474425251074434,
+      "quant_spearman_rho": 0.42494384115241484,
+      "quant_crmse_kcal": 1.58,
+      "screen_1uM_prob_auroc": 0.725,
+      "screen_100nM_prob_ef10": 3.5714285714285716
+    },
+    "dpm2m_16_affkern": {
+      "quant_pearson_r": 0.48091484628302045,
+      "quant_spearman_rho": 0.425752521359505,
+      "quant_crmse_kcal": 1.564674899245171,
+      "screen_1uM_prob_auroc": 0.7177142857142857,
+      "screen_100nM_prob_ef10": 3.5714285714285716
+    }
+  }
+}
